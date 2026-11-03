@@ -1,0 +1,13 @@
+name: file-size-ratchet
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ratchet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check file-size ratchet
+        run: scripts/check-file-size-ratchet.sh

@@ -1,0 +1,61 @@
+:root {
+  --ivory: #f7f2e9;
+  --card: #fffdf8;
+  --charcoal: #2b2723;
+  --muted: #7a7268;
+  --oxblood: #6e1423;
+  --line: #e3dacb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--ivory); color: var(--charcoal);
+  font-family: Georgia, 'Times New Roman', serif;
+  display: flex; justify-content: center; min-height: 100vh;
+}
+.card {
+  background: var(--card); width: 100%; max-width: 480px;
+  display: flex; flex-direction: column; min-height: 100vh;
+  border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+}
+header {
+  display: flex; justify-content: space-between; align-items: start;
+  padding: 20px 20px 8px;
+}
+h1 { margin: 0; font-size: 26px; letter-spacing: .5px; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  background: #c9c0ae; vertical-align: middle;
+}
+.dot.ok { background: #4c7a45; }
+.dot.down { background: var(--oxblood); }
+main { flex: 1; padding: 8px 20px 20px; }
+.panel { display: none; }
+.panel.active { display: block; }
+.panel h2 { font-size: 20px; margin: 10px 0 6px; }
+.empty { color: var(--muted); line-height: 1.5; }
+.tabs {
+  display: flex; justify-content: space-around;
+  border-top: 1px solid var(--line); padding: 10px 8px 14px;
+  background: var(--card);
+}
+.tab {
+  background: none; border: none; cursor: pointer; padding: 8px 14px;
+  border-radius: 10px;
+}
+.tab svg { width: 26px; height: 26px; fill: none; stroke: var(--muted); stroke-width: 1.7; }
+.tab.active svg { stroke: var(--oxblood); }
+.tab.active { background: #f3e9e4; }
+.icon-btn {
+  background: none; border: none; font-size: 24px; cursor: pointer;
+  color: var(--charcoal); line-height: 1;
+}
+.drawer {
+  position: fixed; top: 0; right: 0; height: 100%; width: 300px;
+  background: var(--card); border-left: 1px solid var(--line);
+  padding: 20px; transform: translateX(100%); transition: transform .2s;
+  overflow-y: auto;
+}
+.drawer.open { transform: none; }
+.drawer h2 { font-size: 17px; margin: 18px 0 4px; color: var(--oxblood); }
+.drawer p { margin: 0; color: var(--muted); line-height: 1.45; font-size: 14px; }

@@ -1,0 +1,16 @@
+[project]
+name = "staxline"
+version = "0.1.0"
+description = "Local AI phone system for small appointment businesses — USB modem + on-device agent, no cloud."
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-only" }
+dependencies = []
+
+[project.optional-dependencies]
+modem = ["pyserial"]
+# Voice tier (liquid-audio/torch) is provisioned by the installer
+# per host capability, not by pip — see docs/ARCHITECTURE.md.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

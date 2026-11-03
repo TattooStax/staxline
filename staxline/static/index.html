@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StaxLine</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="card">
+  <header>
+    <div>
+      <h1>StaxLine</h1>
+      <p class="sub">Shop line <span id="health" class="dot" title="server status"></span></p>
+    </div>
+    <button id="drawerBtn" class="icon-btn" aria-label="Open side card">&#9776;</button>
+  </header>
+
+  <main>
+    <section id="panel-messages" class="panel active">
+      <h2>Messages</h2>
+      <p class="empty">No conversations yet. SMS arrives here once the modem worker lands (milestone M1).</p>
+    </section>
+    <section id="panel-phone" class="panel">
+      <h2>Phone</h2>
+      <p class="empty">No calls yet. The acceptance call is milestone M0 — see docs/PLAN.md.</p>
+    </section>
+    <section id="panel-contacts" class="panel">
+      <h2>Contacts</h2>
+      <p class="empty">No contacts yet. People are created from real messages and calls.</p>
+    </section>
+    <section id="panel-calendar" class="panel">
+      <h2>Calendar</h2>
+      <p class="empty">Nothing booked. This is the one authoritative local calendar.</p>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Main">
+    <button data-tab="messages" class="tab active" aria-label="Messages">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg>
+    </button>
+    <button data-tab="phone" class="tab" aria-label="Phone">
+      <svg viewBox="0 0 24 24"><path d="M6 3h4l2 5-3 2a13 13 0 0 0 5 5l2-3 5 2v4c0 1-1 2-2 2C10 20 4 14 4 5c0-1 1-2 2-2z"/></svg>
+    </button>
+    <button data-tab="contacts" class="tab" aria-label="Contacts">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
+    </button>
+    <button data-tab="calendar" class="tab" aria-label="Calendar">
+      <svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="14"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>
+    </button>
+  </nav>
+</div>
+
+<aside id="drawer" class="drawer" aria-label="Side card">
+  <button id="drawerClose" class="icon-btn" aria-label="Close side card">&times;</button>
+  <h2>Soul</h2><p>How the agent speaks for the shop. Not set yet.</p>
+  <h2>Agent</h2><p>Conversation with the agent lives here.</p>
+  <h2>Memory</h2><p>What the agent believes, with sources — review, correct, forget.</p>
+  <h2>Behavior</h2><p>AI pickup, Shop Mode power profile, held-draft rules.</p>
+  <h2>Activity</h2><p>What the agent and the system did, in plain words.</p>
+  <h2>Models</h2><p>Active inference tier and capability probe results.</p>
+</aside>
+
+<script src="app.js"></script>
+</body>
+</html>
