@@ -128,10 +128,39 @@ SMS-dominated and never stressed it. Bench fix: a powered
 USB hub between host and modem. The QMI-direct answer remains
 **untested** — neither proven nor disproven.
 
+## Round 4 — THE ANSWER WORKS (QMI-direct)
+
+After the replug (modem direct, registration held home with
+zero flapping across a 90-second watch) and two harness
+iterations — the first died on a wrong GI argument shape
+(`get_all_call_info` takes `(input, timeout, cancellable,
+callback)`; the signature was found by probing the binding
+against the live modem, not by guessing) — the direct-QMI
+harness answered the owner's call at 17:51:55 Victus:
+
+- Ring detected the same second; call info fetched over the
+  second QMI client (via qmi-proxy, alongside ModemManager);
+  `answer_call` with call id 1 returned without error.
+- **State went `ringing-in → active`** in both the harness
+  log and ModemManager's journal, and held for the full
+  18-second observation window before the harness hung up.
+- **Inbound answering is therefore PROVEN on this unit** —
+  through a direct QMI request, not ModemManager's (whose
+  answer the firmware rejects with error 41).
+
+The caller's experience, for the record: a loud continuous
+buzz (the owner: "a big fart sound... it kept farting").
+Leading explanation, consistent with all captures: **the
+harness transmits nothing**, and the modem's voice path,
+starved of TX audio, loops a frame — the captured RX slice
+is sparse bursts (26.7 KB across 18 s, vs full-rate capture
+on the outbound test) whose loud segments are strongly
+periodic at ~85 Hz. In the product the agent streams audio
+from the first frame, so TX never starves; a speaking-agent
+call (M0b) is the test that confirms this reading.
+
 ## Pending at the time of writing
 
-- **Inbound answer, QMI-direct:** harness ready; blocked on
-  the powered-hub rig fix, then one more owner call.
 - **MMS end to end:** daemon restarted on the corrected
   network path with debug logging; awaiting a fresh picture
   from the owner (the first picture's retrieval retries had
@@ -140,3 +169,6 @@ USB hub between host and modem. The QMI-direct answer remains
 - **Tonight's voicemail capture** was fetched, verified
   (38.4 s WAV), and delivered to the owner for his own
   listen-check; not machine-transcribed.
+- **Modem restore:** the unit goes back to the Dell when the
+  owner closes the session; StaxCloud line health ("Business
+  modem connected") is verified then.

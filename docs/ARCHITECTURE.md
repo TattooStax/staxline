@@ -87,11 +87,20 @@ on first contact (live session, 2026-11-03, evidence in
 - Calls: ring → answer → audio over the modem's USB audio
   function (16k PCM). Live status (2026-11-03, owner's modem):
   **dial-out + PCM both ways + DTMF + hangup proven** on a real
-  call; **inbound answer is blocked** — the firmware rejects
-  ModemManager's QMI answer request (error 41 `InvalidQosId`,
-  call terminates in the same instant). Fix routes (newer
-  ModemManager, qmicli answer) are M0a's open work; no inbound
-  claim is made until one of them answers a real call.
+  call; **inbound answer PROVEN the same night** — not through
+  ModemManager (the firmware rejects its QMI answer request,
+  error 41 `InvalidQosId`, call terminating in the same
+  instant), but through a **direct QMI `answer_call`** issued
+  by the modem worker's own client via qmi-proxy: the owner's
+  call went `ringing-in → active` (ModemManager's journal
+  concurs) and held for the observation window. The Linux
+  modem worker therefore speaks QMI directly for voice, with
+  ModemManager retained for registration/SMS/data duties.
+  One artifact to design around: with no TX audio being fed,
+  the voice path starves and loops a frame (an audible ~85 Hz
+  buzz, and sparse RX bursts) — the agent streams from the
+  first frame in the real loop, and M0b's speaking call is
+  the confirmation.
 - **Voicemail is a preserved record, not a carrier black
   hole** (owner requirement 2026-11-03): the agent answering
   and recording locally is the primary path; a **carrier
