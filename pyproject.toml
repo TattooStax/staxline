@@ -8,6 +8,7 @@ dependencies = []
 
 [project.optional-dependencies]
 modem = ["pyserial"]
+audio = ["sounddevice", "soundfile"]
 # Voice tier (liquid-audio/torch) is provisioned by the installer
 # per host capability, not by pip — see docs/ARCHITECTURE.md.
 
