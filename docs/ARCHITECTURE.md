@@ -74,6 +74,15 @@ if the AT path ever proves insufficient on Linux.
 - SMS: PDU/text handling with delivery state tracked honestly —
   a send is "sent" when the carrier path confirms it, and the
   conversation history records what actually happened.
+- **MMS is out of v1 scope** (director's cut): over AT on
+  Windows it is a swamp, and StaxCloud needed a dedicated daemon
+  for it even on Linux. v1 is voice + SMS; client photos arrive
+  via the booking-link path, and MMS is a post-pilot decision
+  made with evidence of demand.
+- **One modem stack, ever, in v1:** the AT path is the only call
+  state machine on every platform. No ModemManager variant —
+  two stacks means two bug surfaces and a support matrix this
+  product cannot carry.
 - SIM: explicit business-SIM selection where a host has more
   than one modem; process-death recovery must never re-send
   (outbox rows carry idempotency keys and a sent-state journal).
@@ -91,8 +100,27 @@ if the AT path ever proves insufficient on Linux.
   the tier the host can actually carry and records the result;
   the UI shows the active tier plainly. Reference floor:
   Pi 5-class performance must remain viable for the text tier.
+- **The voice model is resident before the line is armed.** It
+  loads at system start, not at first ring — a cold load inside
+  the answer path would blow the ring window. The model survives
+  S3 sleep in RAM; if a resume ever finds it gone, the line
+  reports an honest "warming up" state and missed calls
+  reconcile per `docs/POWER-AND-WAKE.md`, Layer 4.
 - All inference is local. The only network the system needs is
   the cellular network itself.
+
+## The budget table (filled by measurement, not adjectives)
+
+"Lightweight" is banned as a claim until these four numbers
+exist for the weakest reference machine, and they are re-recorded
+at every milestone (see `docs/PLAN.md`, standing rules):
+
+| Measure | Value |
+|---|---|
+| Installed size (app + models) | _unmeasured_ |
+| Cold start to ready | _unmeasured_ |
+| Resident RAM, voice model loaded | _unmeasured_ |
+| Per-turn voice latency (Tier 1 / Tier 2) | _unmeasured_ |
 
 ## Data
 

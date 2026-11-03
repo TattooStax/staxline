@@ -41,9 +41,14 @@ Each memory row carries:
 
 Rules:
 
-- The agent may propose memories freely; it acts on `draft`
-  memories only for low-stakes context, and staff review them in
-  the side card's Memory view (approve / correct / forget).
+- The agent may propose memories freely, but **a live call is
+  never low-stakes**: call context packs contain `approved`
+  memories only. `draft` memories may inform *held* SMS drafts,
+  where a human reads before anything sends. Staff review drafts
+  in the side card's Memory view (approve / correct / forget).
+- A memory created from a call cites the call's transcript and
+  timestamp as its source — the no-source rule covers calls
+  explicitly, not just texts.
 - **Forgetting is real:** forgetting a memory hard-deletes it and
   adds a tombstone (a hash of the statement) so the agent does
   not silently re-learn the same claim from old transcripts.

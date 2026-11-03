@@ -50,9 +50,12 @@ the README.
    a public domain with Digital Asset Links — that is somebody's
    infrastructure by definition. Instead: Android gets a small
    WebView-shell APK (sideloaded from the same USB installer) that
-   points at the host on the shop LAN; iOS gets the PWA with a
-   one-time local-CA install, or a browser bookmark in v1. Full
-   reasoning in `docs/REMOTE-ACCESS.md`.
+   points at the host on the shop LAN; iOS in v1 gets a Safari
+   bookmark on the LAN (a local-CA installed PWA is an advanced,
+   post-v1 option — the director overruled it as the primary
+   path: the least technical users should not be asked to
+   perform the most trust-sensitive setup step in consumer
+   computing). Full reasoning in `docs/REMOTE-ACCESS.md`.
 4. **Memory: one SQLite database.** Records and plain-language
    memories with sources, corrections, and review state; FTS5
    retrieval; no competing databases, no vector store in v1.
@@ -71,20 +74,27 @@ the README.
      package — one end-to-end audio model (speech in, speech out)
      for hosts that can carry it.
    - Text tier: LFM2-1.2B (GGUF) via llama.cpp for SMS drafts and
-     tools, and as the fallback brain on weaker hosts, with small
-     separate STT/TTS only if the audio tier can't run.
-   Model files ship on the unit's flash. **License flag:** LFM
-   weights are under the LFM Open License, not Apache — commercial
-   terms for bundled distribution must be cleared before sale
-   (tracked in `docs/GAPS-AND-RISKS.md`).
-8. **Sleep is designed for, not discovered.** The host falling
+     tools.
+   - **Tier 2 voice (designed, not a contingency):** cascaded
+     small STT → LFM2 text → small TTS, for hosts that can't
+     carry the audio model at call latency. Both voice tiers are
+     designed from day one; the capability probe chooses. A call
+     forgives about a second of response latency, not three —
+     per-turn latency is measured at M0b and decides Tier 1's
+     fate, not optimism.
+   Model files ship on the unit's flash. **License gate:** LFM
+   weights are under the LFM Open License, not Apache — the
+   commercial terms for bundled distribution must be **closed
+   before M3 spend** (director's order; see
+   `docs/GAPS-AND-RISKS.md`).
+7. **Sleep is designed for, not discovered.** The host falling
    asleep is the product's #1 reliability risk: texts survive it
    (store-and-forward), calls don't. The layered design — Shop
    Mode prevention profile, wake-on-ring, scheduled wake,
    reconcile-on-wake honesty, and a sleep test inside setup — is
    specified in `docs/POWER-AND-WAKE.md` and is part of the
    product from M0, not a patch for later.
-7. **Pi is the floor, not the base.** LFM models are edge-first and
+8. **Pi is the floor, not the base.** LFM models are edge-first and
    run on Pi-class hardware (LFM2-1.2B Q4 ≈ 15 tok/s on a Pi 5).
    The customer's Windows laptop is the primary host because the
    dongle product exists to *not* sell a computer. But Pi 5-class
@@ -95,35 +105,51 @@ the README.
 
 ## Milestones
 
-- **M0 — The acceptance call (proof before product).** On a
-  Windows host, through the actual dongle: a real incoming call is
-  answered by the agent, holds a short conversation (greeting,
-  hours question, booking intent), audio intelligible at both
-  ends, transcript saved and read back. This is the same proof
-  shape as the modem voice feasibility verdict — feasible on
-  paper since 2026-11-01, unproven until this call happens.
-  Nothing else hardens before M0 passes. M0 passes twice: once
-  with the host awake, and once from sleep (the Sleep Test in
-  `docs/POWER-AND-WAKE.md`).
+- **M0a — Plumbing proof.** Windows host, actual dongle, drivers
+  installed the installer way. A real incoming call: host rings,
+  agent answers, plays a fixed recorded greeting, records the
+  caller's speech, transcribes it with whatever is on hand, hangs
+  up cleanly. Call log + recording read back from the database.
+  Pass criteria recorded: rings before answer, time-to-audio
+  after pickup, no dropped audio. No LLM in this gate — M0 is
+  split (director's order) so a failure names its layer.
+- **M0b — The acceptance call.** Same setup, live agent
+  conversation: greeting, hours question, booking intent,
+  transcript saved and read back at both ends. Added pass
+  criteria: **measured response latency per turn** (this number
+  decides whether Tier 1 voice survives) and the **from-sleep
+  pass** (the Sleep Test in `docs/POWER-AND-WAKE.md`). Runs on a
+  clean, non-dev Windows machine through the real driver install.
+  Nothing else hardens before M0b passes.
 - **M1 — SMS chain.** Incoming SMS → identify/create contact →
   retrieve local memory → generate held draft locally → staff
   approval → carrier send → accurate native conversation history.
   (Same first chain as inkPilot, on this runtime.)
+- **M1.5 — Number bridge proof.** A real shop number forwarding
+  to a StaxLine SIM, with added ring delay and the voicemail race
+  measured end to end. Forwarding latency eats the wake window,
+  so this is a technical proof, not sales guidance.
 - **M2 — The four tabs, real.** Messages, Phone, Contacts,
   Calendar working against the local database; side card with
   Soul/agent/memory/activity; memory review UI (correct, disable,
-  forget).
+  forget). Exit includes the **published minimum host spec**,
+  derived from the capability probe and M0b's latency numbers —
+  "runs on a computer you already own" is never claimed without
+  it.
 - **M3 — The unit.** Composite-device build, signed installer from
   the unit's own flash, IMEI license tie, first-run setup that a
   non-technical owner can finish: SIM in, install, name the shop,
-  teach it hours and services, test call.
+  teach it hours and services, test call. **Gate: the LFM license
+  answer is in hand before money is spent here.**
 - **M4 — Remote shells.** Android WebView APK pointing at the LAN
-  host; iOS PWA path; both verified on real phones on a real shop
-  LAN.
+  host; iOS Safari bookmark path; both verified on real phones on
+  a real shop LAN.
 - **M5 — Two-shop pilot, then a batch of five.** Fargo Tattoo and
   one salon run it live for real customers; then five units sold
-  to shops the owner knows. Sales beyond that wait for pilot
-  evidence.
+  to shops the owner knows. Pilot exit criteria include
+  **measured support minutes per shop per week** — that number,
+  not parts cost, decides whether $300 is a price or a subsidy.
+  Sales beyond that wait for pilot evidence.
 
 ## Standing rules inherited from the owner's other tracks
 
@@ -138,3 +164,8 @@ the README.
 - File-size ratchet from day one (see README of the ratchet in
   `docs/FILE-SIZE-RATCHET.md`-equivalent: `.file-size-ratchet.json`
   + `scripts/check-file-size-ratchet.sh`).
+- Every milestone records its performance numbers (installed
+  size, cold-start-to-ready, resident RAM with the voice model
+  loaded, per-turn voice latency) on the weakest reference
+  machine in the building. "Lightweight" and "Pi-class floor"
+  are claims those numbers make, or they are not made.

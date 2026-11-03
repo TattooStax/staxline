@@ -1,8 +1,9 @@
 # StaxLine (working name)
 
 A one-time-buy, entirely local AI phone system for small appointment
-businesses — tattoo studios, nail salons, hair salons, barbershops
-first; trades later.
+businesses — tattoo studios, nail salons, hair salons, barbershops.
+Those verticals are the whole v1 scope; any expansion is a
+decision made later, with pilot evidence.
 
 **The product in one paragraph:** a branded USB unit (a Waveshare
 SIM7600G-H cellular modem in a printed case, combined with the
@@ -17,9 +18,11 @@ that unit's modem.
 direction of record. The only code is a zero-dependency Python
 server serving the UI shell, so the shape can be run and seen.
 No telephony, inference, or modem feature is implemented yet, and
-nothing here should be read as if it were. The first milestone is
-a proof, not a feature: one real phone call answered by the agent
-through the dongle on a Windows host (see `docs/PLAN.md`).
+nothing here should be read as if it were. The first milestones
+are proofs, not features: M0a (a real call answered through the
+dongle on a Windows host, plumbing only), then M0b (the live
+agent acceptance call, latency measured, including from sleep).
+See `docs/PLAN.md`.
 
 ## Start here
 

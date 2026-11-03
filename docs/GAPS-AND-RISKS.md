@@ -1,73 +1,85 @@
 # StaxLine — Gaps and risks
 
-Ranked by how likely they are to hurt a real customer. Each has
-the mitigation in the plan; none are hand-waved.
+Ranked by how likely they are to hurt a real customer.
+Re-ranked 2026-11-03 after the director's round-1 take (the
+voice-performance item was missing entirely from the first
+draft — that absence was itself a finding).
 
-1. **Host sleep kills voice.** The #1 risk — a closed laptop is a
-   dead phone line. Full treatment in `docs/POWER-AND-WAKE.md`:
-   prevention profile, wake-on-ring, scheduled wake, reconcile
-   on wake, and a sleep test in setup so the owner sees their
-   machine's real behavior before a customer does.
+1. **Voice latency and quality on real shop hardware.** The
+   largest technical unknown in the product. Nobody has measured
+   LFM2-Audio's speech-to-speech latency on a mid-range CPU-only
+   Windows laptop, and a caller forgives roughly a second of
+   response latency, not three. Sub-risk: a cold model load
+   inside the answer path blows the ring window outright — the
+   voice model must be resident before the line is armed (see
+   `docs/ARCHITECTURE.md`). Mitigation ordered: benchmark before
+   M2 design hardens, per-turn latency recorded at M0b, Tier 2
+   cascade designed in parallel regardless of the result, and a
+   published minimum host spec at M2.
 
 2. **The number problem is the adoption problem.** Shops already
    have a number their clients know. Porting it to a new SIM is
    slow and can fail; asking them to change numbers is a
-   dealbreaker. Plan: launch on a new dedicated SIM number and
-   bridge with carrier call-forwarding from the existing number
-   (the shop's current line forwards to StaxLine when they want
-   the agent on). Porting support is a post-pilot feature, not a
-   launch blocker — but sales copy must never pretend it's
-   nothing.
+   dealbreaker. Launch story: carrier call-forwarding from the
+   existing number ("keep your number — your line forwards to
+   StaxLine when you want the agent on"). But forwarding is also
+   a technical behaviour: **forwarding adds ring delay, which
+   compounds the wake window** in `docs/POWER-AND-WAKE.md` —
+   hence the M1.5 proof measuring it end to end, on the actual
+   carriers the pilot shops use. Porting support is post-pilot.
 
-3. **Windows driver friction.** The SIM7600 presents multiple USB
-   functions (AT port, audio, network). On a clean Windows
-   machine the installer must land SIMCom's drivers in the right
-   order or the owner meets Device Manager. Mitigation: signed
-   driver package inside a signed installer, a first-run hardware
-   check that names exactly what's missing, and the owner's own
-   known-good machine classes tested first (M0/M3 gates).
+3. **Host sleep kills voice.** A closed laptop is a dead phone
+   line. Full treatment in `docs/POWER-AND-WAKE.md`: Shop Mode
+   prevention profile (the only *supported* posture),
+   wake-on-ring as a measured bonus rather than a promise,
+   scheduled wake, reconcile-on-wake honesty, and a sleep test
+   in setup so the owner sees their machine's real behaviour
+   before a customer does.
 
-4. **LFM Open License commercial terms.** LFM weights are not
-   Apache-licensed. Shipping them on a sold product needs the
-   commercial terms read and cleared *before* the first sale —
-   a legal check, tracked as a pre-M5 blocker. Fallback if terms
-   fail: ship the runtime, and models are provisioned under
-   whatever mechanism the license allows.
+4. **Windows driver and installer friction on clean machines.**
+   The SIM7600 presents multiple USB functions (AT port, audio,
+   network). On a clean Windows machine the installer must land
+   SIMCom's drivers in the right order or the owner meets Device
+   Manager in their first ten minutes — the ten minutes that
+   decide the product's reputation. Mitigation: signed driver
+   package inside a signed installer, a first-run hardware check
+   that names exactly what's missing, and M0/M3 gates run on
+   clean borrowed machines, never dev machines. **Buy the
+   code-signing certificate early** — its lead time is a
+   schedule risk hiding inside a purchase order.
 
-5. **USB power and random shop hardware.** A modem drawing peaks
+5. **LFM Open License commercial terms — deadline: before M3.**
+   LFM weights are not Apache-licensed. Shipping them on a sold
+   product needs the commercial terms read and, if redistribution
+   at commercial scale is not clearly permitted, Liquid's answer
+   in writing — *before* hardware money moves, not pre-sale.
+   The fallback (models provisioned under whatever mechanism
+   the license allows) is acceptable only as a fallback.
+
+6. **USB power and random shop hardware.** A modem drawing peaks
    from a weak USB port on an old laptop browns out and resets
    mid-call. Mitigation: capability probe warns on repeated modem
    resets; setup guide steers to a rear/motherboard port or a
    powered hub; the appliance variant (fixed known hardware)
    exists partly to kill this class.
 
-6. **10DLC / A2P registration for business SMS.** US carriers
-   increasingly require A2P registration for application-driven
-   texting; a raw consumer SIM texting customers can be filtered.
-   Mitigation: honest guidance at setup (sole-proprietor tier
-   where it fits, volume expectations set low and human-like),
-   and product copy that never promises bulk/marketing texting.
-   This product is a front desk, not a broadcast tool.
+7. **Host death = shop memory death.** If the shop's PC dies,
+   their records die with it unless backed up. Mitigation:
+   scheduled DB snapshots to the unit's own flash (the unit is
+   the backup), plus one-click export in setup. Restore = new
+   host + the same unit.
 
-7. **Call recording and consent law.** Recording/consent rules
+8. **Call recording and consent law.** Recording/consent rules
    vary by state (one-party vs two-party). Mitigation: the agent
    announces itself and the recording at pickup ("This is the
    shop's assistant; this call may be recorded"), recordings are
    a per-shop setting defaulting to the safer posture, and
    transcripts remain if recording is off.
 
-8. **Not an emergency or life-safety line.** The shop line must
+9. **Not an emergency or life-safety line.** The shop line must
    never be presented as a 911-capable phone. The agent's
    playbook routes emergencies to "call 911" and the setup
    checklist says the shop keeps a normal phone for emergencies.
-
-9. **Support burden on non-technical owners.** Every failure
-   above arrives as "it doesn't work." Mitigation: the Activity
-   feed is written in plain words, the daily self-check catches
-   drift before customers do, and a one-button "diagnostics
-   bundle" (logs + state, no customer message content by default)
-   the owner can send support. Support cost, not parts, is the
-   margin risk at $300 — the pilot (M5) measures it before scale.
 
 10. **Repackaging rules.** The unit is a branded case around a
     Waveshare board: FCC ID and serial labels stay intact and
@@ -75,8 +87,19 @@ the mitigation in the plan; none are hand-waved.
     we manufactured the modem. An OEM/white-label conversation
     with Waveshare is the clean route if volume justifies it.
 
-11. **Host death = shop memory death.** If the shop's PC dies,
-    their records die with it unless backed up. Mitigation:
-    scheduled DB snapshots to the unit's own flash (the unit is
-    the backup), plus one-click export in setup. Restore = new
-    host + the same unit.
+11. **10DLC / A2P registration for business SMS.** Real, and
+    deliberately ranked here rather than higher (director's
+    call): launch behaviour is low-volume and human-shaped.
+    Mitigation: honest setup guidance (sole-proprietor tier
+    where it fits), and product copy that never promises
+    bulk/marketing texting. This product is a front desk, not a
+    broadcast tool.
+
+12. **Support burden on non-technical owners.** Real but
+    unmeasurable until the pilot, so it is a metric, not a
+    design input: the pilot (M5) records support minutes per
+    shop per week, and that number decides the $300 question.
+    In the meantime: an Activity feed in plain words, a daily
+    self-check that catches drift before customers do, and a
+    one-button diagnostics bundle (logs + state, no customer
+    message content by default).

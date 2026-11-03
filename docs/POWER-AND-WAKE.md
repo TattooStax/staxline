@@ -37,7 +37,15 @@ power settings and warns in Activity if they no longer match —
 Windows updates and helpful relatives both change these settings,
 and silent drift is how phone systems die.
 
-## Layer 2 — Wake on ring (the safety net)
+## Layer 2 — Wake on ring (a bonus, never the plan)
+
+**Wake-on-ring is never load-bearing.** It is an OEM lottery —
+on Modern Standby machines especially, USB wake frequently does
+not fire at all (see the warning two paragraphs down; it is
+repeated there on purpose). Shop Mode (Layer 1) is the only
+*supported* posture; this layer is what sometimes saves a night
+when prevention failed, and the Sleep Test measures it per
+machine instead of promising it.
 
 Prevention can fail (someone unplugs the laptop, a setting gets
 reset), so the modem is also armed as a wake source:

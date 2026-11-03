@@ -40,30 +40,29 @@ not a vendor lock-in.
   the local download page the host itself serves).
 - A WebView app is not bound by the PWA secure-context rules; it
   can talk to the LAN host over HTTP on the shop's own network.
-- Bonus: the shell can send **Wake-on-LAN** — when the owner opens
-  the app and the host is asleep, the phone fires a magic packet
-  at the host's MAC before loading the UI (see
-  `docs/POWER-AND-WAKE.md`, Layer 2/3).
+- Nice-to-have, not a power layer: the shell can send a
+  Wake-on-LAN magic packet at the host before loading the UI.
+  It is garnish on `docs/POWER-AND-WAKE.md`, never a substitute
+  for Shop Mode.
 
-**iOS — PWA with a one-time local CA (primary path).**
+**iOS — Safari bookmark (the v1 product).**
 
-- iOS has no sideloading path for customers, so the web app is
-  the only route. To give it a secure context, the host generates
-  a **local certificate authority** at install time; the setup
-  wizard has the owner install that CA profile on the iPhone once
-  (a standard iOS settings flow, ~1 minute), after which the host
-  serves the UI over HTTPS *on the LAN* with a locally-issued
-  certificate the phone trusts. Add-to-Home-Screen then works
-  like any PWA.
-- The CA's private key never leaves the host. Nothing is fetched
-  from the internet at any point.
-- **Fallback:** skip the CA and use a plain browser bookmark over
-  HTTP — the UI still works in Safari; it just doesn't install
-  to the home screen or run a service worker. Setup offers both,
-  honestly labeled.
+- iOS has no sideloading path for customers, so the browser is
+  the route: the owner opens the host's LAN address in Safari,
+  saves the bookmark, enters the pairing code once. It works;
+  it does not install to the home screen with a service worker.
+  v1 says exactly that.
+- **Post-v1, advanced, optional:** a host-generated local CA
+  profile would give the PWA a secure context on the LAN. It is
+  deliberately *not* the v1 path (director's ruling): installing
+  a root CA is the most trust-sensitive action in consumer
+  computing — iOS presents it with warnings and buries the trust
+  toggle, and a compromised host would hold a general-purpose
+  certificate mint, not a StaxLine-scoped one. The least
+  technical users must not be handed the most technical step.
 
-**Desktop/other phones — plain browser on the LAN**, same HTTPS
-(or HTTP fallback) address. One UI, three wrappers.
+**Desktop/other phones — plain browser on the LAN**, same
+address. One UI, three wrappers.
 
 ## Scope, honestly
 
@@ -81,6 +80,11 @@ the product, and its limit is stated rather than hidden.
   a new device shows a short code on the host's screen, entered
   once on the phone. No token, no data — a customer on shop Wi-Fi
   must not be able to open the front desk.
+- Accepted v1 risk, stated plainly: on plain HTTP the pairing
+  token and session traffic are sniffable by another device on
+  the same LAN. The shop LAN is the trust boundary in v1; shops
+  with untrusted guest Wi-Fi should keep the host on a private
+  SSID/VLAN (a setup-checklist line, not a feature).
 - The CA profile and token flows are one-time setup steps; the
   wizard verifies each with a live check ("your phone is
   connected") before setup completes.
