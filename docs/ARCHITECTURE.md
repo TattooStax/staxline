@@ -85,9 +85,23 @@ on first contact (live session, 2026-11-03, evidence in
 - The license tie reads the IMEI from whichever transport is
   live (ModemManager property / `AT+CGSN`).
 - Calls: ring → answer → audio over the modem's USB audio
-  function (16k PCM; feasibility verified 2026-11-01 via
-  ModemManager on the Dell; end-to-end answering is M0's proof,
-  in progress on the owner's hardware).
+  function (16k PCM). Live status (2026-11-03, owner's modem):
+  **dial-out + PCM both ways + DTMF + hangup proven** on a real
+  call; **inbound answer is blocked** — the firmware rejects
+  ModemManager's QMI answer request (error 41 `InvalidQosId`,
+  call terminates in the same instant). Fix routes (newer
+  ModemManager, qmicli answer) are M0a's open work; no inbound
+  claim is made until one of them answers a real call.
+- **Voicemail is a preserved record, not a carrier black
+  hole** (owner requirement 2026-11-03): the agent answering
+  and recording locally is the primary path; a **carrier
+  retrieval leg** — dial the voicemail number on wake and on a
+  schedule, DTMF-navigate, record, transcribe, file with
+  `source: carrier-voicemail` — covers the hours the unit was
+  asleep or down, so a caller's message is never stranded in a
+  mailbox nobody checks. Its primitives (dial, PCM, DTMF) are
+  the ones already proven; the mailbox PIN is a setup-wizard
+  item.
 - SMS: delivery state tracked honestly — a send is "sent" when
   the carrier path confirms it, and the conversation history
   records what actually happened. Two-way SMS was proven live

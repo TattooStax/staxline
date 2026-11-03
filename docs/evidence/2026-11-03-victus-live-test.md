@@ -51,10 +51,65 @@ runs ~2–3 minutes behind. Raw logs live on the Victus in
   heard 6–7 rings and hung up). Fixed in round 2 (full result
   logging, state polling, ModemManager journal capture).
 
+## Voice round 2 — the answer failure, named
+
+The owner's second call (17:10 Victus) was captured with full
+instrumentation. The ring was seen and confirmed, and the
+answer command's result was logged verbatim:
+
+```
+couldn't accept the call: 'GDBus.Error:...Core.Failed:
+Unhandled QMI protocol error (41): Couldn't accept call:
+QMI protocol error (41): 'InvalidQosId''
+```
+
+ModemManager's journal shows the call going `ringing-in →
+terminated (error)` in the same instant. **The QMI answer
+request itself is rejected by the modem firmware, and the
+call dies from the rejection** — in both rounds. The caller
+was dropped to the carrier's voicemail. Inbound answering is
+blocked on this: candidate routes are a newer ModemManager, a
+lower-level qmicli answer, or a firmware note for this module.
+
+## Voice dial-out — proven, including audio and DTMF
+
+Immediately after, the modem **placed** a call to T-Mobile's
+voicemail number (+1 805 637 7243): created, started, `active`
+in ~2 s, and the USB audio captured **1,230,080 bytes of PCM
+(67% nonzero, structured energy — the voicemail system's
+voice)**, a DTMF digit was sent successfully mid-call
+(`successfully send dtmf`), and the hangup was clean. So the
+outbound voice path — dial, connect, two-way PCM, DTMF,
+hangup — works end to end on this unit tonight. Only the
+inbound *answer* direction is broken.
+
+## Voicemail preservation (owner requirement, 2026-11-03)
+
+The owner, after leaving a test voicemail: "Hopefully there's
+a way for us to preserve those too because those are handy."
+Adopted as a requirement, designed from tonight's evidence:
+
+- **Primary:** the agent answers before the carrier does and
+  records locally — a voicemail becomes a normal record with a
+  transcription, beside the texts. (Gated on the answer fix.)
+- **Retrieval leg (covers sleep/downtime — and the interim
+  until answering works):** the unit dials the carrier
+  voicemail on wake and on a schedule, navigates by DTMF,
+  records the playback, and files it the same way, honestly
+  labeled `source: carrier-voicemail`. Every primitive this
+  needs was proven in the dial-out test above. Open items:
+  the mailbox PIN for the line (unknown tonight), and menu
+  brittleness (mitigated by keeping the raw audio, not just a
+  transcription).
+
 ## Pending at the time of writing
 
-- **Voice round 2:** instrumented harness armed (audio port
-  held open from arm time); awaiting the owner's second call.
+- **Inbound answer fix:** ModemManager version/update check
+  and the qmicli answer route (round 3).
 - **MMS end to end:** daemon restarted on the corrected
-  network path; awaiting a fresh picture from the owner (the
-  first picture's retrieval retries had already expired).
+  network path with debug logging; awaiting a fresh picture
+  from the owner (the first picture's retrieval retries had
+  already expired, and its downloaded payload failed to
+  decode — the debug run exists to capture why).
+- **Tonight's voicemail capture** (`vm-greeting.pcm`, on the
+  Victus) is recorded but not yet transcribed.
