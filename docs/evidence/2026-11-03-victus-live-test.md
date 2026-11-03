@@ -102,14 +102,41 @@ Adopted as a requirement, designed from tonight's evidence:
   brittleness (mitigated by keeping the raw audio, not just a
   transcription).
 
+## Round 3 — the rig fell over: USB brown-out
+
+A third harness was built to bypass ModemManager's answer
+entirely: a direct QMI client through the protocol library
+(libqmi GI bindings expose `ClientVoice.answer_call` even
+though the `qmicli` tool ships no voice call actions;
+ModemManager 1.24.2 was already current, so "update MM" was
+never a real route). It armed cleanly — device opened via
+qmi-proxy, VOICE client allocated — but **never saw a ring**:
+before the owner's call arrived, the modem itself collapsed.
+Kernel journal: the SimTech device re-enumerated as a new USB
+device (all five ttyUSB ports re-attached). ModemManager
+journal: a registration death-spiral (home → searching →
+registering, repeatedly), ending at "No modems were found"
+with the device still on the bus. The owner's call never
+reached the modem; the carrier sent him to the (never
+configured, Spanish-greeting) voicemail.
+
+Diagnosis: **USB power brown-out.** This modem family pulls
+current spikes a laptop USB port cannot reliably sustain,
+worst when the data bearer and voice are active together —
+exactly tonight's stacked test load. Its production life was
+SMS-dominated and never stressed it. Bench fix: a powered
+USB hub between host and modem. The QMI-direct answer remains
+**untested** — neither proven nor disproven.
+
 ## Pending at the time of writing
 
-- **Inbound answer fix:** ModemManager version/update check
-  and the qmicli answer route (round 3).
+- **Inbound answer, QMI-direct:** harness ready; blocked on
+  the powered-hub rig fix, then one more owner call.
 - **MMS end to end:** daemon restarted on the corrected
   network path with debug logging; awaiting a fresh picture
   from the owner (the first picture's retrieval retries had
   already expired, and its downloaded payload failed to
   decode — the debug run exists to capture why).
-- **Tonight's voicemail capture** (`vm-greeting.pcm`, on the
-  Victus) is recorded but not yet transcribed.
+- **Tonight's voicemail capture** was fetched, verified
+  (38.4 s WAV), and delivered to the owner for his own
+  listen-check; not machine-transcribed.

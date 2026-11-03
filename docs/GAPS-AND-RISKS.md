@@ -52,6 +52,13 @@ draft — that absence was itself a finding).
    on ModemManager and the Windows COM-port AT question is now
    the sharpest unknown in M0a (evidence:
    `docs/evidence/2026-11-03-victus-live-test.md`).
+10. **USB power is a product requirement, not a bench detail.**
+    The modem brown-outs on an ordinary laptop USB port under
+    combined data + voice load (kernel-proven re-enumeration,
+    2026-11-03): the composite unit's hub is **powered**, or
+    host-port power is a published minimum-spec line with a
+    setup-wizard power check. A customer on a weak port would
+    live the failure as "the box randomly dies during calls."
 
 5. **LFM Open License commercial terms — deadline: before M3.**
    LFM weights are not Apache-licensed. Shipping them on a sold
