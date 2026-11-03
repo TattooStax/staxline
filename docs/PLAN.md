@@ -60,14 +60,17 @@ the README.
    memories with sources, corrections, and review state; FTS5
    retrieval; no competing databases, no vector store in v1.
    See `docs/MEMORY-DESIGN.md`.
-5. **Modem layer: AT-first, behavior borrowed.** The production
-   StaxCloud modem layer is Rust over ModemManager D-Bus — Linux
-   only, and Windows is the primary customer platform. StaxLine's
-   modem layer speaks serial AT (cross-platform via pyserial) and
-   uses the modem's USB audio device for call PCM, following the
-   behavior proven on the Dell: ring/answer handling, the 16k PCM
-   voice path (feasibility verified 2026-11-01), SMS/MMS handling,
-   failure honesty. The StaxCloud code is the reference for *what
+5. **Modem layer: one state machine, per-platform transport.**
+   REVISED 2026-11-03 on first contact with the real unit (the
+   draft said AT-first; the hardware disagreed — see
+   `docs/evidence/2026-11-03-victus-live-test.md`): this unit's
+   USB serial AT ports do not answer, so **Linux uses
+   ModemManager (D-Bus)** — the same path StaxCloud runs in
+   production — and **Windows COM-port AT stays the open M0a
+   question**, unproven until it runs there. SMS, MMS (required
+   — owner directive 2026-11-03, superseding the director's
+   cut), and voice all ride the one worker/state machine above
+   the transport. The StaxCloud code is the reference for *what
    correct looks like*, not a code dependency.
 6. **Inference: two tiers.**
    - Voice tier: LFM2-Audio-1.5B via Liquid's `liquid-audio`

@@ -66,23 +66,47 @@ if the AT path ever proves insufficient on Linux.
 
 ## Modem layer
 
-- Enumerate the unit by USB VID/PID, open its AT port
-  (pyserial), read IMEI (`AT+CGSN`) for the license tie.
-- Calls: unsolicited ring indications → answer/hangup AT flow;
-  voice audio through the modem's USB audio endpoint (the 16k
-  PCM path verified feasible on this hardware 2026-11-01).
-- SMS: PDU/text handling with delivery state tracked honestly —
-  a send is "sent" when the carrier path confirms it, and the
-  conversation history records what actually happened.
-- **MMS is out of v1 scope** (director's cut): over AT on
-  Windows it is a swamp, and StaxCloud needed a dedicated daemon
-  for it even on Linux. v1 is voice + SMS; client photos arrive
-  via the booking-link path, and MMS is a post-pilot decision
-  made with evidence of demand.
-- **One modem stack, ever, in v1:** the AT path is the only call
-  state machine on every platform. No ModemManager variant —
-  two stacks means two bug surfaces and a support matrix this
-  product cannot carry.
+One modem worker, one call state machine — but the *transport*
+under it is per-platform, because the hardware forced the issue
+on first contact (live session, 2026-11-03, evidence in
+`docs/evidence/2026-11-03-victus-live-test.md`):
+
+- **Linux transport: ModemManager (D-Bus).** The actual unit's
+  USB serial AT ports do not answer: after a clean reset and
+  registration, both AT-labelled ports stayed silent to every
+  AT form while the GPS port streamed and ModemManager/QMI
+  controlled the modem fully. Serial AT is therefore not the
+  Linux path on this hardware. The D-Bus path is also the one
+  already proven in production by StaxCloud.
+- **Windows transport: COM-port AT via SIMCom's drivers —
+  UNPROVEN.** Whether the same module answers AT under the
+  Windows driver composition is exactly what M0a on Windows
+  exists to answer. Until it does, no Windows claim is made.
+- The license tie reads the IMEI from whichever transport is
+  live (ModemManager property / `AT+CGSN`).
+- Calls: ring → answer → audio over the modem's USB audio
+  function (16k PCM; feasibility verified 2026-11-01 via
+  ModemManager on the Dell; end-to-end answering is M0's proof,
+  in progress on the owner's hardware).
+- SMS: delivery state tracked honestly — a send is "sent" when
+  the carrier path confirms it, and the conversation history
+  records what actually happened. Two-way SMS was proven live
+  on the owner's modem 2026-11-03 (out: state read back `sent`;
+  in: the owner's reply read back off the modem).
+- **MMS is required** (owner directive 2026-11-03, superseding
+  the director's v1 cut — client picture messages are core to
+  the beachhead verticals, tattoo reference photos above all).
+  Linux path: `mmsd-tng` against ModemManager, plus the part
+  that is easy to miss — **the bearer's network settings must
+  be applied to the host** (address, route, carrier DNS): a
+  modem-level "connected" bearer does nothing for the host by
+  itself. In StaxCloud production this is the `staxbox-mms`
+  NetworkManager connection from the install artifacts; the
+  product installer owns the equivalent. First live evidence:
+  an MMS notification reached the daemon the moment the owner
+  sent a picture; retrieval only became possible after the
+  cellular interface was configured by hand and the carrier's
+  MMSC name resolved through the bearer's own DNS64.
 - SIM: explicit business-SIM selection where a host has more
   than one modem; process-death recovery must never re-send
   (outbox rows carry idempotency keys and a sent-state journal).

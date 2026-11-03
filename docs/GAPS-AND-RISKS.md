@@ -46,7 +46,12 @@ draft — that absence was itself a finding).
    that names exactly what's missing, and M0/M3 gates run on
    clean borrowed machines, never dev machines. **Buy the
    code-signing certificate early** — its lead time is a
-   schedule risk hiding inside a purchase order.
+   schedule risk hiding inside a purchase order. First contact
+   with the real unit already revised the modem plan once —
+   its USB serial AT ports do not answer at all, so Linux runs
+   on ModemManager and the Windows COM-port AT question is now
+   the sharpest unknown in M0a (evidence:
+   `docs/evidence/2026-11-03-victus-live-test.md`).
 
 5. **LFM Open License commercial terms — deadline: before M3.**
    LFM weights are not Apache-licensed. Shipping them on a sold

@@ -5,6 +5,27 @@ records the shop works with, and the plain-language memories the
 agent thinks with. No second database, no vector store, no cloud
 sync. If a fact isn't in this file, the system doesn't know it.
 
+## Scope: per-artist, per-business-shape
+
+Memory is scoped the way the business is actually structured
+(owner directive 2026-11-03, matching his standing
+soft-separation rule from the StaxCloud track):
+
+- Every record and every memory carries a **scope**: `shop`
+  (shared by everyone) or a specific artist/staff member.
+- A conversation with an artist carries that artist's scope;
+  the context pack for their calls and drafts contains shop-wide
+  memories **plus that artist's** — never another artist's
+  private notes by default.
+- The agent may *search across* scopes for best-fit routing
+  (which artist fits this piece?) — reads for routing are
+  allowed; one artist's client facts are not silently used in
+  another artist's conversation.
+- Setup asks how the business works: a solo shop runs one scope
+  and never sees this machinery; a multi-artist studio gets
+  per-artist memory from the first record. Same database, same
+  schema — the scope column is there from day one either way.
+
 ## Records (the working data)
 
 - `contacts` — people: name, number(s), notes, first/last contact.

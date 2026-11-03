@@ -40,8 +40,12 @@ shop line **701-491-3276** (texts land through it today).
 - Testing in place on the Dell is a *Linux* proof only: the AT
   ports there are owned by ModemManager/StaxCloud services,
   which must be paused first — and it does not satisfy the
-  Windows gate. It is still useful as a first smoke of the AT
-  path against the real modem.
+  Windows gate. Update from the 2026-11-03 Victus session: on
+  this unit the serial AT ports do not answer at all (see
+  `docs/evidence/2026-11-03-victus-live-test.md`), so the Linux
+  smoke runs through ModemManager (mmcli/D-Bus), not the
+  serial harness in `scripts/run_m0a.py`. The serial harness
+  remains the Windows-path tool, pending its own proof.
 - The Windows gate requires the modem on a Windows host. That
   is the run that counts as M0a.
 
