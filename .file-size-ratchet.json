@@ -17,7 +17,7 @@
   "docs/PLAN.md": 174,
   "docs/POWER-AND-WAKE.md": 125,
   "docs/REMOTE-ACCESS.md": 90,
-  "docs/evidence/2026-11-03-victus-live-test.md": 174,
+  "docs/evidence/2026-11-03-victus-live-test.md": 186,
   "pyproject.toml": 17,
   "scripts/check-file-size-ratchet.py": 143,
   "scripts/check-file-size-ratchet.sh": 4,
@@ -27,12 +27,14 @@
   "staxline/audio.py": 71,
   "staxline/db.py": 55,
   "staxline/modem.py": 147,
+  "staxline/qmi_modem.py": 330,
   "staxline/server.py": 54,
   "staxline/static/app.css": 61,
   "staxline/static/app.js": 19,
   "staxline/static/index.html": 66,
   "tests/__init__.py": 0,
   "tests/test_modem_fake.py": 81,
+  "tests/test_qmi_modem.py": 137,
   "tests/test_smoke.py": 39
  },
  "legacy_over_cap": []

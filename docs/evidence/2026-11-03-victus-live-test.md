@@ -161,11 +161,23 @@ call (M0b) is the test that confirms this reading.
 
 ## Pending at the time of writing
 
-- **MMS end to end:** daemon restarted on the corrected
-  network path with debug logging; awaiting a fresh picture
-  from the owner (the first picture's retrieval retries had
-  already expired, and its downloaded payload failed to
-  decode — the debug run exists to capture why).
+- **MMS end to end — deferred to the M1 wiring, with the
+  bench findings recorded:** notification/push PROVEN;
+  retrieval transport PROVEN possible (the daemon downloaded
+  from the MMSC once the host bearer was configured); that
+  download FAILED TO DECODE, and the daemon preserved nothing
+  — its in-memory message record (sender blank, dated
+  17:08:26) died with the bench restarts and the on-disk
+  store is empty, so the payload can no longer be diagnosed.
+  The outbound send test was blocked by the bench itself:
+  mmsctl calls stall against daemons run under ad-hoc session
+  buses. Neither failure is a modem or carrier result. The
+  clean retest is the production wiring — one daemon against
+  a NetworkManager-managed bearer (the `staxbox-mms` pattern
+  from the StaxCloud artifacts) plus one fresh picture — and
+  belongs to the M1 build, where MMS support lands as code
+  (the new `staxline/qmi_modem.py` covers the ModemManager
+  duties MMS rides on).
 - **Tonight's voicemail capture** was fetched, verified
   (38.4 s WAV), and delivered to the owner for his own
   listen-check; not machine-transcribed.
