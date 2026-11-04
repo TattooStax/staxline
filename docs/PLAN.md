@@ -172,3 +172,23 @@ the README.
   loaded, per-turn voice latency) on the weakest reference
   machine in the building. "Lightweight" and "Pi-class floor"
   are claims those numbers make, or they are not made.
+
+## Hardware v2 — the tiny always-on unit (owner direction, 2026-11-03)
+
+The composite USB dongle is v1's known-good modem, not the
+destination. The destination splits the product the way the
+software already is split: a **tiny always-on unit** (a
+microcontroller or $10-class Linux board + a small LTE Cat-1
+module, ~$30–45 of parts instead of the ~$100 dongle) carries
+the SIM, the telephony, and the deterministic harness — it
+never sleeps, hears every ring, runs SMS end-to-end alone,
+and wakes the shop computer, which stays the heavy half:
+the model (~1 GB of weights cannot shrink to a
+microcontroller) and the memory store.
+
+Module law for the track: voice-capable LTE Cat-1 only
+(A7670/SIM7670 class) — 2G is dead in the US and Cat-M/NB-IoT
+has no real voice; T-Mobile-family prepaid SIMs are the
+proven carrier pattern; AT&T's whitelist is the known
+hostile case. First de-risk is a ~$30 dev bench proving
+AT-over-UART voice + SMS on the prepaid SIM already in hand.
