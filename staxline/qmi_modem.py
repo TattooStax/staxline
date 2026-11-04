@@ -152,9 +152,15 @@ class MmClient:
     def read_sms(self, path):
         kv = parse_keyvalue(self._mmcli("--sms=" + path,
                                         "--output-keyvalue"))
+        # The readable body is sms.content.text; sms.content.data
+        # is the raw-payload field and reports '--' for ordinary
+        # text messages (found live: an inbox of '--' bodies).
+        text = kv.get("sms.content.text")
+        if text in (None, "--"):
+            text = kv.get("sms.content.data")
         return {
             "number": kv.get("sms.content.number"),
-            "text": kv.get("sms.content.data"),
+            "text": text,
             "state": kv.get("sms.properties.state"),
         }
 

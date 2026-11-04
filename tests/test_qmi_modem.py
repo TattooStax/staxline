@@ -123,8 +123,11 @@ class SmsTests(unittest.TestCase):
         self.assertEqual(state, "sent")
 
     def test_read_sms_parses_content(self):
+        # Real keyvalue shape from the live modem: the body is
+        # under .text, and .data is '--' for text messages.
         kv = ("sms.content.number : +17018317231\n"
-              "sms.content.data   : What services do you offer\n"
+              "sms.content.text   : What services do you offer\n"
+              "sms.content.data   : --\n"
               "sms.properties.state : received\n")
         r = ScriptedRunner([("--output-keyvalue", (0, kv, ""))])
         msg = make_modem(r).read_sms(
