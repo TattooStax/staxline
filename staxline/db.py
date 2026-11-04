@@ -55,6 +55,13 @@ CREATE TABLE IF NOT EXISTS messages (
     modem_ref TEXT UNIQUE,
     created_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS service_sms (
+    id INTEGER PRIMARY KEY,
+    number TEXT,
+    body TEXT,
+    modem_ref TEXT UNIQUE,
+    created_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS drafts (
     id INTEGER PRIMARY KEY,
     conversation_id INTEGER NOT NULL
@@ -138,9 +145,24 @@ def add_message(db, conversation_id, direction, body, state,
 def message_seen(db, modem_ref):
     """Dedupe by the modem-side reference: the modem keeps its
     own copy of every SMS, and ingest must never double-record
-    what a previous pass already took in."""
-    return db.execute("SELECT 1 FROM messages WHERE modem_ref = ?",
+    what a previous pass already took in. Service messages
+    count as seen too — they are filed, just not as customer
+    conversations."""
+    if db.execute("SELECT 1 FROM messages WHERE modem_ref = ?",
+                  (modem_ref,)).fetchone() is not None:
+        return True
+    return db.execute("SELECT 1 FROM service_sms "
+                      "WHERE modem_ref = ?",
                       (modem_ref,)).fetchone() is not None
+
+
+def add_service_sms(db, number, body, modem_ref):
+    cur = db.execute(
+        "INSERT INTO service_sms (number, body, modem_ref, "
+        "created_at) VALUES (?, ?, ?, ?)",
+        (number, body, modem_ref, time.time()))
+    db.commit()
+    return cur.lastrowid
 
 
 def add_draft(db, conversation_id, body, context_pack=None):

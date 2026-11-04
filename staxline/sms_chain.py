@@ -18,13 +18,36 @@ a human approves, only then does anything leave the modem.
 """
 from . import db as dbmod
 
+# Carrier/service traffic shares the modem's SMS store with
+# customer texts (GAPS #9b, live evidence 2026-11-03): visual-
+# voicemail sync arrives from shortcode 127 with a //VVM:
+# prefix, provisioning notices come from shortcodes like 6700.
+# These are filed as service records — the VVM sync is real
+# signal (a voicemail exists) — but they are not customer
+# conversations and never surface as one.
+SERVICE_NUMBERS = {"127", "6700"}
+SERVICE_PREFIXES = ("//VVM:",)
+
+
+def classify_sms(number, text):
+    """'carrier' for carrier/service traffic, else 'customer'.
+    Conservative by design: anything unrecognized is a customer
+    message, because hiding a real customer is the worse error."""
+    if number in SERVICE_NUMBERS:
+        return "carrier"
+    if text and text.startswith(SERVICE_PREFIXES):
+        return "carrier"
+    return "customer"
+
 
 def ingest_sms(modem, db, scope="shop"):
-    """Take every not-yet-recorded received SMS off the modem
-    into contacts / conversations / messages. Idempotent:
-    re-running ingests nothing twice. Returns the new messages
-    as dicts (number, text, modem_ref)."""
+    """Take every not-yet-recorded received SMS off the modem:
+    customer messages into contacts / conversations / messages,
+    carrier traffic into service records. Idempotent: re-running
+    ingests nothing twice. Returns the new customer messages as
+    dicts (number, text, modem_ref)."""
     fresh = []
+    service = 0
     for path in modem.list_sms():
         if dbmod.message_seen(db, path):
             continue
@@ -32,6 +55,11 @@ def ingest_sms(modem, db, scope="shop"):
         if msg.get("state") != "received":
             continue  # our own sends live in the same store
         if not msg.get("number"):
+            continue
+        if classify_sms(msg["number"], msg.get("text")) == "carrier":
+            dbmod.add_service_sms(db, msg["number"],
+                                  msg.get("text"), path)
+            service += 1
             continue
         contact_id = dbmod.upsert_contact(db, msg["number"],
                                           scope=scope)
@@ -41,10 +69,11 @@ def ingest_sms(modem, db, scope="shop"):
                           "received", modem_ref=path)
         fresh.append({"number": msg["number"],
                       "text": msg.get("text"), "modem_ref": path})
-    if fresh:
+    if fresh or service:
         dbmod.log_activity(
             db, "sms",
-            f"Ingested {len(fresh)} new message(s) from the modem.")
+            f"Ingested {len(fresh)} new message(s) and filed "
+            f"{service} carrier/service record(s) from the modem.")
     return fresh
 
 

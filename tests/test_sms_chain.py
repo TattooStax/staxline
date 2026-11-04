@@ -89,6 +89,47 @@ class IngestTests(unittest.TestCase):
             self.assertEqual(sorted(c for _, c in rows), [1, 2])
 
 
+class CarrierClassificationTests(unittest.TestCase):
+    CARRIER = {
+        "/org/freedesktop/ModemManager1/SMS/21": {
+            "number": "127",
+            "text": "//VVM:SYNC:ev=NM;id=1;c=1",
+            "state": "received"},
+        "/org/freedesktop/ModemManager1/SMS/22": {
+            "number": "6700",
+            "text": "Need help setting up data and picture "
+                    "messaging? Head to u.ultra.me/androidapn",
+            "state": "received"},
+        "/org/freedesktop/ModemManager1/SMS/23": {
+            "number": "+17018317231",
+            "text": "A real customer text",
+            "state": "received"},
+    }
+
+    def test_carrier_traffic_files_as_service_not_conversation(self):
+        with tempfile.TemporaryDirectory() as td:
+            db = fresh_db(td)
+            fresh = ingest_sms(ChainModem(self.CARRIER), db)
+            self.assertEqual(len(fresh), 1)
+            self.assertEqual(fresh[0]["text"],
+                             "A real customer text")
+            n = db.execute("SELECT COUNT(*) FROM service_sms")
+            self.assertEqual(n.fetchone()[0], 2)
+            n = db.execute("SELECT COUNT(*) FROM messages")
+            self.assertEqual(n.fetchone()[0], 1)
+            n = db.execute("SELECT COUNT(*) FROM contacts")
+            self.assertEqual(n.fetchone()[0], 1)
+
+    def test_carrier_filing_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as td:
+            db = fresh_db(td)
+            modem = ChainModem(self.CARRIER)
+            ingest_sms(modem, db)
+            ingest_sms(modem, db)
+            n = db.execute("SELECT COUNT(*) FROM service_sms")
+            self.assertEqual(n.fetchone()[0], 2)
+
+
 class DraftGateTests(unittest.TestCase):
     def test_draft_is_held_and_nothing_sends(self):
         with tempfile.TemporaryDirectory() as td:

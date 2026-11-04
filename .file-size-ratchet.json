@@ -26,11 +26,11 @@
   "staxline/__init__.py": 7,
   "staxline/__main__.py": 4,
   "staxline/audio.py": 177,
-  "staxline/db.py": 158,
+  "staxline/db.py": 180,
   "staxline/modem.py": 147,
   "staxline/qmi_modem.py": 377,
   "staxline/server.py": 54,
-  "staxline/sms_chain.py": 92,
+  "staxline/sms_chain.py": 121,
   "staxline/static/app.css": 61,
   "staxline/static/app.js": 19,
   "staxline/static/index.html": 66,
@@ -39,7 +39,7 @@
   "tests/test_pcm_stream.py": 127,
   "tests/test_qmi_modem.py": 140,
   "tests/test_smoke.py": 39,
-  "tests/test_sms_chain.py": 151
+  "tests/test_sms_chain.py": 192
  },
  "legacy_over_cap": []
 }
