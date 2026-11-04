@@ -93,6 +93,23 @@ There is no relay, no account, and no server of ours in any of
 these paths — that's the point of the product, and its limit is
 stated rather than hidden.
 
+## The text line is the primary interface (owner ruling, 2026-11-03)
+
+The web UI is **not** the product's front door. Tonight's live
+test made the reason physical: reaching even a LAN page from
+the owner's phone failed on a host firewall — and a shipping
+product cannot ask a shop owner to open ports, both because
+most won't know how and because an open port is attack surface
+the product shouldn't create. So the ruling: **the registered
+admin must be able to pilot the whole system by SMS** — drafts
+to approve, updates pushed out, commands in — the same way the
+owner talks to his own agent today: a conversation, in both
+directions, over the text line between the human and the
+agent. The web UI remains as in-shop tooling on the host's own
+screen (and the LAN for those who want it), but nothing
+essential may live only behind it. Any feature that can't be
+driven from the text line isn't finished.
+
 ## Staff contacts: identity by number (owner design, 2026-11-03)
 
 Staff are **registered contacts**: a person becomes staff by

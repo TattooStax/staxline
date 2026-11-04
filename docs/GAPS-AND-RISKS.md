@@ -68,6 +68,34 @@ draft — that absence was itself a finding).
     host-port power is a published minimum-spec line with a
     setup-wizard power check. A customer on a weak port would
     live the failure as "the box randomly dies during calls."
+9c. **Modem SMS indices are volatile.** The store re-numbers
+    its messages across modem resets and re-registrations (the
+    same evening thread reappeared under new indices), so the
+    message index alone is not a safe dedupe key — a new
+    message can collide with an old stored index and be
+    skipped. Dedupe needs a content-derived key (sender +
+    timestamp + body hash); the index is only a locator.
+11. **MMS is a hard requirement, proven the hard way.** The
+    owner's own first real test text carried a picture — as
+    real customers' texts will (reference photos are the norm
+    in the pilot trade). Receive-side MMS stands at: push
+    notification proven, payload download proven reachable,
+    decode FAILED on the one payload captured, and the bench
+    daemon setup too fragile to test sending. The fix is the
+    production wiring (one daemon, system bus, a managed
+    bearer) before any further bench attempts.
+12. **Modem firmware is a research track, not a dependency**
+    (owner direction, 2026-11-03). Reverse-engineering the
+    SIM7600 firmware might unlock behavior the stock stack
+    handles badly (the firmware-rejected voice answer is the
+    standing example) — and a fix proven once could be flashed
+    to every unit. Order of attack is host stack first:
+    tonight's MMS failure happened in host software after the
+    modem delivered. Safety rule: never experiment on the only
+    modem — the unit carrying the shop line is production;
+    firmware work waits for a spare unit on the bench, and any
+    flash must be proven reversible before it touches a second
+    modem.
 
 5. **LFM Open License commercial terms — ANSWERED
    (2026-10-30).** The owner accepted the LFM Open License
