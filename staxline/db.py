@@ -29,6 +29,41 @@ CREATE TABLE IF NOT EXISTS activity (
     kind TEXT NOT NULL,
     text TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS contacts (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    number TEXT NOT NULL UNIQUE,
+    notes TEXT,
+    scope TEXT NOT NULL DEFAULT 'shop',
+    first_contact_at REAL,
+    last_contact_at REAL
+);
+CREATE TABLE IF NOT EXISTS conversations (
+    id INTEGER PRIMARY KEY,
+    contact_id INTEGER NOT NULL REFERENCES contacts(id),
+    scope TEXT NOT NULL DEFAULT 'shop',
+    created_at REAL NOT NULL,
+    last_message_at REAL
+);
+CREATE TABLE IF NOT EXISTS messages (
+    id INTEGER PRIMARY KEY,
+    conversation_id INTEGER NOT NULL
+        REFERENCES conversations(id),
+    direction TEXT NOT NULL,
+    body TEXT,
+    state TEXT NOT NULL,
+    modem_ref TEXT UNIQUE,
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS drafts (
+    id INTEGER PRIMARY KEY,
+    conversation_id INTEGER NOT NULL
+        REFERENCES conversations(id),
+    body TEXT NOT NULL,
+    context_pack TEXT,
+    state TEXT NOT NULL DEFAULT 'held',
+    created_at REAL NOT NULL
+);
 """
 
 
@@ -53,3 +88,71 @@ def record_call(db, call):
         [call[k] for k in keys])
     db.commit()
     return cur.lastrowid
+
+
+def upsert_contact(db, number, scope="shop"):
+    """One contact per number; first sight stamps first contact,
+    every sight refreshes last contact. Returns the contact id."""
+    now = time.time()
+    row = db.execute("SELECT id FROM contacts WHERE number = ?",
+                     (number,)).fetchone()
+    if row:
+        db.execute("UPDATE contacts SET last_contact_at = ? "
+                   "WHERE id = ?", (now, row[0]))
+        db.commit()
+        return row[0]
+    cur = db.execute(
+        "INSERT INTO contacts (number, scope, first_contact_at, "
+        "last_contact_at) VALUES (?, ?, ?, ?)",
+        (number, scope, now, now))
+    db.commit()
+    return cur.lastrowid
+
+
+def get_or_create_conversation(db, contact_id, scope="shop"):
+    row = db.execute(
+        "SELECT id FROM conversations WHERE contact_id = ? "
+        "AND scope = ?", (contact_id, scope)).fetchone()
+    if row:
+        return row[0]
+    cur = db.execute(
+        "INSERT INTO conversations (contact_id, scope, created_at) "
+        "VALUES (?, ?, ?)", (contact_id, scope, time.time()))
+    db.commit()
+    return cur.lastrowid
+
+
+def add_message(db, conversation_id, direction, body, state,
+                modem_ref=None):
+    now = time.time()
+    cur = db.execute(
+        "INSERT INTO messages (conversation_id, direction, body, "
+        "state, modem_ref, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (conversation_id, direction, body, state, modem_ref, now))
+    db.execute("UPDATE conversations SET last_message_at = ? "
+               "WHERE id = ?", (now, conversation_id))
+    db.commit()
+    return cur.lastrowid
+
+
+def message_seen(db, modem_ref):
+    """Dedupe by the modem-side reference: the modem keeps its
+    own copy of every SMS, and ingest must never double-record
+    what a previous pass already took in."""
+    return db.execute("SELECT 1 FROM messages WHERE modem_ref = ?",
+                      (modem_ref,)).fetchone() is not None
+
+
+def add_draft(db, conversation_id, body, context_pack=None):
+    cur = db.execute(
+        "INSERT INTO drafts (conversation_id, body, context_pack, "
+        "state, created_at) VALUES (?, ?, ?, 'held', ?)",
+        (conversation_id, body, context_pack, time.time()))
+    db.commit()
+    return cur.lastrowid
+
+
+def set_draft_state(db, draft_id, state):
+    db.execute("UPDATE drafts SET state = ? WHERE id = ?",
+               (state, draft_id))
+    db.commit()
