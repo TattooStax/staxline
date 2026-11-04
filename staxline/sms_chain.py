@@ -106,14 +106,23 @@ def approve_and_send(modem, db, draft_id):
     body, state, number = row
     if state != "held":
         raise ValueError(f"draft {draft_id} is {state}, not held")
-    readback = modem.send_sms(number, body)
+    # Persist the claim before crossing the irreversible modem boundary.
+    # After a crash, a sending/unknown draft must be reconciled,
+    # never automatically resent.
+    dbmod.set_draft_state(db, draft_id, "sending")
+    try:
+        readback = modem.send_sms(number, body)
+    except Exception:
+        dbmod.set_draft_state(db, draft_id, "unknown")
+        raise
     conv_id = db.execute(
         "SELECT conversation_id FROM drafts WHERE id = ?",
         (draft_id,)).fetchone()[0]
     dbmod.add_message(db, conv_id, "out", body,
                       readback or "unknown")
-    dbmod.set_draft_state(db, draft_id,
-                          "sent" if readback == "sent" else "failed")
+    settled = ("sent" if readback == "sent" else
+               "failed" if readback == "failed" else "unknown")
+    dbmod.set_draft_state(db, draft_id, settled)
     dbmod.log_activity(
         db, "sms",
         f"Draft {draft_id} approved and sent to {number}: "

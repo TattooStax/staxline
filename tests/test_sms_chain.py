@@ -171,11 +171,52 @@ class DraftGateTests(unittest.TestCase):
             state = db.execute("SELECT state FROM drafts "
                                "WHERE id = ?",
                                (draft_id,)).fetchone()[0]
-            self.assertEqual(state, "failed")
+            self.assertEqual(state, "unknown")
             row = db.execute(
                 "SELECT state FROM messages WHERE direction='out'"
             ).fetchone()
             self.assertEqual(row[0], "unknown")
+
+    def test_send_exception_leaves_uncertain_not_held(self):
+        with tempfile.TemporaryDirectory() as td:
+            db = fresh_db(td)
+            class InterruptedModem(ChainModem):
+                def send_sms(self, number, text):
+                    self.sent.append((number, text))
+                    raise RuntimeError("connection lost after submission")
+            modem = InterruptedModem(STORE)
+            draft_id = hold_draft(modem, db, "+17018317231", "Hi")
+            with self.assertRaises(RuntimeError):
+                approve_and_send(modem, db, draft_id)
+            self.assertEqual(db.execute(
+                "SELECT state FROM drafts WHERE id=?", (draft_id,)
+            ).fetchone()[0], "unknown")
+            with self.assertRaises(ValueError):
+                approve_and_send(modem, db, draft_id)
+            self.assertEqual(len(modem.sent), 1)
+
+    def test_restart_does_not_resend_claimed_draft(self):
+        with tempfile.TemporaryDirectory() as td:
+            db = fresh_db(td)
+            draft_id = hold_draft(ChainModem(STORE), db,
+                                  "+17018317231", "Hi")
+            dbmod.set_draft_state(db, draft_id, "sending")
+            db.close()
+            db = fresh_db(td)
+            modem = ChainModem(STORE)
+            with self.assertRaises(ValueError):
+                approve_and_send(modem, db, draft_id)
+            self.assertEqual(modem.sent, [])
+
+    def test_unknown_readback_is_not_called_failed(self):
+        with tempfile.TemporaryDirectory() as td:
+            db = fresh_db(td)
+            modem = ChainModem(STORE, send_state="unknown")
+            draft_id = hold_draft(modem, db, "+17018317231", "Hi")
+            approve_and_send(modem, db, draft_id)
+            self.assertEqual(db.execute(
+                "SELECT state FROM drafts WHERE id=?", (draft_id,)
+            ).fetchone()[0], "unknown")
 
     def test_double_approval_is_refused(self):
         with tempfile.TemporaryDirectory() as td:
