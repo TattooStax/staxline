@@ -47,6 +47,23 @@ def make_modem(runner, voice=None):
                       voice=voice or FakeQmiVoice())
 
 
+class CommandFailureTests(unittest.TestCase):
+    def test_nonzero_mmcli_exit_is_not_silently_accepted(self):
+        client = MmClient(runner=ScriptedRunner([
+            ("--messaging-list-sms", (1, "", "device disappeared")),
+        ]))
+        with self.assertRaisesRegex(ModemError, "device disappeared"):
+            client.list_sms()
+
+    def test_runner_timeout_is_modem_error(self):
+        import subprocess
+        def timeout_runner(args):
+            raise subprocess.TimeoutExpired(args, 15)
+        client = MmClient(runner=timeout_runner)
+        with self.assertRaisesRegex(ModemError, "timed out"):
+            client.list_sms()
+
+
 class ProbeTests(unittest.TestCase):
     def test_probe_parses_keyvalue(self):
         r = ScriptedRunner([("--output-keyvalue", (0, MODEM_KV, ""))])

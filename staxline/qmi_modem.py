@@ -40,7 +40,7 @@ CALL_PATH_RE = re.compile(r"/org/freedesktop/ModemManager1/Call/\d+")
 
 def subprocess_runner(args):
     """Run a command, return (returncode, stdout, stderr)."""
-    r = subprocess.run(args, capture_output=True, text=True)
+    r = subprocess.run(args, capture_output=True, text=True, timeout=15)
     return r.returncode, r.stdout, r.stderr
 
 
@@ -61,7 +61,13 @@ class MmClient:
         self.run = runner
 
     def _mmcli(self, *args):
-        rc, out, err = self.run(["mmcli", *args])
+        try:
+            rc, out, err = self.run(["mmcli", *args])
+        except subprocess.TimeoutExpired as exc:
+            raise ModemError("mmcli timed out") from exc
+        if rc != 0:
+            raise ModemError("mmcli failed (exit %s): %s" %
+                             (rc, (err or out).strip()[:500]))
         return out + err
 
     def probe(self):
