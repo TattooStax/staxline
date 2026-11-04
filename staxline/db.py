@@ -71,6 +71,24 @@ CREATE TABLE IF NOT EXISTS memory_tombstones (
     hash TEXT PRIMARY KEY,
     created_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS staff (
+    contact_id INTEGER PRIMARY KEY,
+    role TEXT NOT NULL,
+    scope TEXT NOT NULL DEFAULT 'shop',
+    pin_hash TEXT,
+    active INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS staff_inbox (
+    id INTEGER PRIMARY KEY,
+    number TEXT NOT NULL,
+    text TEXT,
+    created_at REAL NOT NULL,
+    handled INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS kv (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
 CREATE TABLE IF NOT EXISTS service_sms (
     id INTEGER PRIMARY KEY,
     number TEXT,
@@ -216,6 +234,78 @@ def memories_for(db, subject, scope="shop", states=("approved",)):
         (*states, subject, scope)).fetchall()
     return [{"id": r[0], "subject": r[1], "scope": r[2],
              "text": r[3], "review_state": r[4]} for r in rows]
+
+
+def register_staff(db, number, role, scope="shop", pin=None):
+    """A person becomes staff by their number being registered
+    with a role (docs/REMOTE-ACCESS.md). Identity is the number;
+    the PIN, when set, gates only the sensitive commands, so it
+    is stored hashed — the database is not a credential store."""
+    import hashlib
+    contact_id = upsert_contact(db, number, scope=scope)
+    pin_hash = (hashlib.sha256(pin.encode()).hexdigest()
+                if pin else None)
+    db.execute(
+        "INSERT INTO staff (contact_id, role, scope, pin_hash) "
+        "VALUES (?, ?, ?, ?) ON CONFLICT(contact_id) DO UPDATE "
+        "SET role = excluded.role, scope = excluded.scope, "
+        "pin_hash = excluded.pin_hash, active = 1",
+        (contact_id, role, scope, pin_hash))
+    db.commit()
+    return contact_id
+
+
+def staff_for(db, number):
+    """The staff record for a sender number, or None — the one
+    lookup that decides whether an inbound text is an
+    instruction or a customer conversation."""
+    row = db.execute(
+        "SELECT s.role, s.scope, s.pin_hash FROM staff s "
+        "JOIN contacts c ON c.id = s.contact_id "
+        "WHERE c.number = ? AND s.active = 1",
+        (number,)).fetchone()
+    if row is None:
+        return None
+    return {"role": row[0], "scope": row[1], "pin_hash": row[2]}
+
+
+def staff_numbers(db, role=None):
+    q = ("SELECT c.number FROM staff s JOIN contacts c "
+         "ON c.id = s.contact_id WHERE s.active = 1")
+    args = ()
+    if role:
+        q += " AND s.role = ?"
+        args = (role,)
+    return [r[0] for r in db.execute(q, args).fetchall()]
+
+
+def add_staff_inbox(db, number, text):
+    cur = db.execute(
+        "INSERT INTO staff_inbox (number, text, created_at) "
+        "VALUES (?, ?, ?)", (number, text, time.time()))
+    db.commit()
+    return cur.lastrowid
+
+
+def get_kv(db, key, default=None):
+    row = db.execute("SELECT value FROM kv WHERE key = ?",
+                     (key,)).fetchone()
+    return row[0] if row else default
+
+
+def set_kv(db, key, value):
+    db.execute(
+        "INSERT INTO kv (key, value) VALUES (?, ?) "
+        "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        (key, value))
+    db.commit()
+
+
+def sending_frozen(db):
+    """Lockdown is a stored flag, not a mode in someone's head:
+    the send path checks it on every send, so a lockdown texted
+    from a driveway holds even if the host reboots."""
+    return get_kv(db, "lockdown", "0") == "1"
 
 
 def add_draft(db, conversation_id, body, context_pack=None):

@@ -24,17 +24,19 @@
   "scripts/run_drafter.py": 37,
   "scripts/run_m0a.py": 68,
   "scripts/run_m0b.py": 81,
+  "scripts/run_staff.py": 46,
   "staxline/__init__.py": 7,
   "staxline/__main__.py": 4,
   "staxline/audio.py": 177,
   "staxline/context_pack.py": 105,
-  "staxline/db.py": 233,
+  "staxline/db.py": 323,
   "staxline/drafting.py": 60,
   "staxline/model.py": 104,
   "staxline/modem.py": 147,
   "staxline/qmi_modem.py": 377,
   "staxline/server.py": 249,
-  "staxline/sms_chain.py": 121,
+  "staxline/sms_chain.py": 134,
+  "staxline/staff.py": 188,
   "staxline/static/app.css": 114,
   "staxline/static/app.js": 191,
   "staxline/static/index.html": 87,
@@ -45,7 +47,8 @@
   "tests/test_qmi_modem.py": 140,
   "tests/test_server_api.py": 157,
   "tests/test_smoke.py": 42,
-  "tests/test_sms_chain.py": 192
+  "tests/test_sms_chain.py": 192,
+  "tests/test_staff.py": 156
  },
  "legacy_over_cap": []
 }

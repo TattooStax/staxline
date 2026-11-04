@@ -48,6 +48,7 @@ def ingest_sms(modem, db, scope="shop"):
     dicts (number, text, modem_ref)."""
     fresh = []
     service = 0
+    staff = 0
     for path in modem.list_sms():
         if dbmod.message_seen(db, path):
             continue
@@ -61,6 +62,14 @@ def ingest_sms(modem, db, scope="shop"):
                                   msg.get("text"), path)
             service += 1
             continue
+        if dbmod.staff_for(db, msg["number"]) is not None:
+            # A registered staff number is an instruction
+            # channel, never a customer thread: the sender's
+            # identity decides before a word is read.
+            dbmod.add_staff_inbox(db, msg["number"],
+                                  msg.get("text"))
+            staff += 1
+            continue
         contact_id = dbmod.upsert_contact(db, msg["number"],
                                           scope=scope)
         conv_id = dbmod.get_or_create_conversation(db, contact_id,
@@ -69,11 +78,12 @@ def ingest_sms(modem, db, scope="shop"):
                           "received", modem_ref=path)
         fresh.append({"number": msg["number"],
                       "text": msg.get("text"), "modem_ref": path})
-    if fresh or service:
+    if fresh or service or staff:
         dbmod.log_activity(
             db, "sms",
-            f"Ingested {len(fresh)} new message(s) and filed "
-            f"{service} carrier/service record(s) from the modem.")
+            f"Ingested {len(fresh)} new message(s), filed "
+            f"{service} carrier/service record(s) and routed "
+            f"{staff} staff instruction(s) from the modem.")
     return fresh
 
 
@@ -106,6 +116,9 @@ def approve_and_send(modem, db, draft_id):
     body, state, number = row
     if state != "held":
         raise ValueError(f"draft {draft_id} is {state}, not held")
+    if dbmod.sending_frozen(db):
+        raise ValueError("lockdown is on: customer sending is "
+                         "frozen until an admin texts RESUME")
     readback = modem.send_sms(number, body)
     conv_id = db.execute(
         "SELECT conversation_id FROM drafts WHERE id = ?",
