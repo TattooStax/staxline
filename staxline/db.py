@@ -55,6 +55,22 @@ CREATE TABLE IF NOT EXISTS messages (
     modem_ref TEXT UNIQUE,
     created_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS memories (
+    id INTEGER PRIMARY KEY,
+    subject TEXT NOT NULL,
+    scope TEXT NOT NULL DEFAULT 'shop',
+    text TEXT NOT NULL,
+    source_kind TEXT NOT NULL,
+    source_ref TEXT,
+    review_state TEXT NOT NULL DEFAULT 'draft',
+    supersedes INTEGER,
+    created_by TEXT,
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS memory_tombstones (
+    hash TEXT PRIMARY KEY,
+    created_at REAL NOT NULL
+);
 CREATE TABLE IF NOT EXISTS service_sms (
     id INTEGER PRIMARY KEY,
     number TEXT,
@@ -167,6 +183,39 @@ def add_service_sms(db, number, body, modem_ref):
         (number, body, modem_ref, time.time()))
     db.commit()
     return cur.lastrowid
+
+
+def add_memory(db, subject, text, source_kind, source_ref=None,
+               scope="shop", review_state="draft",
+               created_by="agent", supersedes=None):
+    """A memory is only created with a source (design law: a
+    memory with no source does not get created) — the parameter
+    is required, not optional."""
+    cur = db.execute(
+        "INSERT INTO memories (subject, scope, text, source_kind, "
+        "source_ref, review_state, supersedes, created_by, "
+        "created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (subject, scope, text, source_kind, source_ref,
+         review_state, supersedes, created_by, time.time()))
+    db.commit()
+    return cur.lastrowid
+
+
+def memories_for(db, subject, scope="shop", states=("approved",)):
+    """Memories usable for a subject: theirs plus shop-wide,
+    in the given review states, newest last."""
+    marks = ",".join("?" for _ in states)
+    rows = db.execute(
+        f"SELECT id, subject, scope, text, review_state FROM "
+        f"memories WHERE review_state IN ({marks}) AND "
+        f"(subject = ? OR subject = 'shop') AND "
+        f"(scope = ? OR scope = 'shop') AND "
+        f"id NOT IN (SELECT supersedes FROM memories "
+        f"WHERE supersedes IS NOT NULL) "
+        f"ORDER BY created_at",
+        (*states, subject, scope)).fetchall()
+    return [{"id": r[0], "subject": r[1], "scope": r[2],
+             "text": r[3], "review_state": r[4]} for r in rows]
 
 
 def add_draft(db, conversation_id, body, context_pack=None):
