@@ -52,6 +52,15 @@ draft — that absence was itself a finding).
    on ModemManager and the Windows COM-port AT question is now
    the sharpest unknown in M0a (evidence:
    `docs/evidence/2026-11-03-victus-live-test.md`).
+9b. **Carrier service chatter lands in the modem's SMS store.**
+    The M1 chain's first live ingest (2026-11-03) pulled
+    visual-voicemail sync messages (shortcode 127) and a carrier
+    APN-provisioning notice (shortcode 6700) in alongside real
+    customer texts — the modem store does not distinguish them.
+    Ingest needs a classification step: known carrier/service
+    patterns file as system records (genuinely useful — the VVM
+    sync message is how the carrier announces a voicemail) but
+    never surface as customer conversations in Messages.
 10. **USB power is a product requirement, not a bench detail.**
     The modem brown-outs on an ordinary laptop USB port under
     combined data + voice load (kernel-proven re-enumeration,
