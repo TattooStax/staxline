@@ -83,7 +83,14 @@ draft — that absence was itself a finding).
     decode FAILED on the one payload captured, and the bench
     daemon setup too fragile to test sending. The fix is the
     production wiring (one daemon, system bus, a managed
-    bearer) before any further bench attempts.
+    bearer) before any further bench attempts. The reference
+    implementation exists in the family: StaxCloud production
+    runs mmsd-tng beside the box with an **MMS-only data
+    connection that is never the default route** (its
+    install-mms.sh) — the product wiring copies that shape,
+    because a bearer that steals the shop computer's default
+    route would break the shop's internet and read as our
+    product breaking their network.
 12. **Modem firmware is a research track, not a dependency**
     (owner direction, 2026-11-03). Reverse-engineering the
     SIM7600 firmware might unlock behavior the stock stack

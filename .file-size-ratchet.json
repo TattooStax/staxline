@@ -2,7 +2,7 @@
  "version": 1,
  "hard_cap_lines": 1000,
  "files": {
-  ".file-size-ratchet.json": 51,
+  ".file-size-ratchet.json": 54,
   ".github/workflows/file-size-ratchet.yml": 13,
   ".gitignore": 9,
   "AGENTS.md": 57,
@@ -11,7 +11,7 @@
   "docs/ARCHITECTURE.md": 178,
   "docs/DIRECTOR-TAKE.md": 336,
   "docs/FILE-SIZE-RATCHET.md": 64,
-  "docs/GAPS-AND-RISKS.md": 155,
+  "docs/GAPS-AND-RISKS.md": 162,
   "docs/M0A-RUNBOOK.md": 85,
   "docs/MEMORY-DESIGN.md": 107,
   "docs/PLAN.md": 194,
