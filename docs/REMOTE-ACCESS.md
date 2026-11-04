@@ -64,15 +64,103 @@ not a vendor lock-in.
 **Desktop/other phones — plain browser on the LAN**, same
 address. One UI, three wrappers.
 
-## Scope, honestly
+## Scope, honestly — reaching it from across town
 
-This is **LAN access**: the phone must be on the shop's Wi-Fi
-(or the host's hotspot). Reaching the system from home or the
-road would require a tunnel or VPN — the supported answer there
-is the owner's own self-hosted WireGuard, documented as an
-advanced option, never a StaxLine cloud. There is no relay, no
-account, and no server of ours in the path — that's the point of
-the product, and its limit is stated rather than hidden.
+The full UI above is **LAN access**: the phone must be on the
+shop's Wi-Fi (or the host's hotspot). Reaching it from across
+town with no third-party infrastructure runs into the bootstrap
+problem, stated plainly because it decides the design: a phone
+on cellular and a host behind the shop router are both behind
+NATs with changing addresses, so they can only find each other
+if one side has a stable reachable address or a public service
+introduces them. Every "just works from anywhere" product runs
+that introduction service — that service *is* the third-party
+infrastructure. StaxLine's answer is layered:
+
+1. **The number is the remote (below).** The shop line itself
+   is reachable from anywhere on Earth by design of the phone
+   network. Staff direct the agent by texting and calling it —
+   no internet, no app, no relay. This carries *operation*
+   (notify, approve, query, command), not the full UI.
+2. **Full UI via the owner's own WireGuard**, when the shop
+   connection offers a reachable address (a public IPv4 with
+   one forwarded port, or working IPv6). Keys live on the two
+   devices; the setup wizard tests which case the shop is in
+   and says honestly when neither is available.
+3. **LAN**, as above, always available in the shop.
+
+There is no relay, no account, and no server of ours in any of
+these paths — that's the point of the product, and its limit is
+stated rather than hidden.
+
+## Staff contacts: identity by number (owner design, 2026-11-03)
+
+Staff are **registered contacts**: a person becomes staff by
+their mobile number being saved as one, with a role — `admin`
+(the owner / whoever runs the unit), `lead`, `staff`. The
+business chooses how many numbers to register: one admin number
+only, or the whole crew. Defaults ship sensible; nobody has to
+configure a permissions matrix.
+
+Because the line itself distinguishes senders, a message from a
+registered number is a *staff instruction*, and a message from
+any other number is a *customer conversation*. The agent never
+has to guess which kind of conversation it is in — and that
+classification is also what the per-artist scope keys off: a
+text from an artist's registered number is their scope.
+
+**Permissions are enforced by the router, never by the model.**
+A deterministic layer checks role → capability before anything
+acts; the small local model is never asked to judge who may do
+what (it would be the weakest link). The model only receives
+"the sender is staff, role: lead" as context for tone and
+scope. Default bundle:
+
+- All staff: get alerts for their scope, claim a conversation
+  (the agent goes quiet on it), file notes/memories by texting
+  them, query status.
+- Lead: plus approve held drafts, open/close shop modes
+  (walk-ins today, after-hours), broadcast a note to staff.
+- Admin: plus register/remove staff numbers, lockdown (all
+  sending stops), de-register a lost phone, change the
+  step-up PIN.
+
+**Number identity, honestly hardened.** Caller/sender numbers
+can be spoofed, so the stakes decide the proof: low-stakes
+reads (status, summaries) ride on the number alone; approvals
+are bound to content — the alert shows the exact draft text,
+and "OK" approves *that text*, nothing else; sensitive commands
+(lockdown undo, staff changes, PIN) require the step-up PIN.
+Every staff command lands in Activity with the number it came
+from.
+
+**What the staff channel gives the shop:**
+
+- *Run the shop from a pocket.* Approve drafts from anywhere;
+  morning brief (today's bookings, held drafts, yesterday's
+  misses) pushed to staff numbers; end-of-day recap the same
+  way. Absence of the morning brief is itself the alarm that
+  the host is down.
+- *Routing with a human in reach.* A hot lead texts in; the
+  agent alerts the artist whose scope fits; the artist claims
+  it or sends it back; the agent never double-handles a
+  claimed thread.
+- *Presence.* Staff text IN / OUT / OPEN; the agent knows who
+  is in, which powers honest walk-in behavior and routing.
+- *The fastest memory capture there is.* "REMEMBER: …" /
+  "CORRECT: …" from a staff number is the highest-trust memory
+  source (staff statement) — no app to open, no screen to find.
+- *Safety nets.* LOCKDOWN from any lead/admin number freezes
+  outbound instantly; a lost staff phone is de-registered from
+  another registered number.
+- *Zero install for staff.* The interface is the messaging app
+  already on their phones; onboarding is "save this number,
+  text HELLO."
+
+The same identity works on the voice side: a call from a
+registered number reaches owner mode (PIN-gated) — hear today's
+voicemails, hear a held draft read aloud, approve by keypad —
+for the drive between shops.
 
 ## Security posture on the LAN
 

@@ -25,6 +25,11 @@ soft-separation rule from the StaxCloud track):
   and never sees this machinery; a multi-artist studio gets
   per-artist memory from the first record. Same database, same
   schema — the scope column is there from day one either way.
+- **Staff are contacts with a role** (`admin` / `lead` /
+  `staff`) registered by mobile number — see
+  `docs/REMOTE-ACCESS.md`. A staff contact's scope is the
+  artist/staff member they are; their texts are instructions
+  and highest-trust memory sources, never customer threads.
 
 ## Records (the working data)
 
