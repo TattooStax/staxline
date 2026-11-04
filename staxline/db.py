@@ -75,7 +75,11 @@ CREATE TABLE IF NOT EXISTS drafts (
 
 
 def connect(path):
-    db = sqlite3.connect(str(Path(path)))
+    # check_same_thread=False because the app server serves
+    # requests on handler threads; callers serialize access
+    # (server.App's lock), so sharing one connection is safe
+    # by construction rather than by thread affinity.
+    db = sqlite3.connect(str(Path(path)), check_same_thread=False)
     db.execute("PRAGMA journal_mode=WAL")
     db.executescript(SCHEMA)
     return db

@@ -59,3 +59,56 @@ main { flex: 1; padding: 8px 20px 20px; }
 .drawer.open { transform: none; }
 .drawer h2 { font-size: 17px; margin: 18px 0 4px; color: var(--oxblood); }
 .drawer p { margin: 0; color: var(--muted); line-height: 1.45; font-size: 14px; }
+.row-head { display: flex; justify-content: space-between; align-items: center; }
+.btn {
+  background: var(--oxblood); color: var(--ivory); border: none;
+  border-radius: 8px; padding: 9px 16px; font: inherit;
+  font-size: 15px; cursor: pointer;
+}
+.btn.small { padding: 5px 12px; font-size: 13px; }
+.note { color: var(--muted); font-size: 13px; min-height: 16px; }
+.conv-item {
+  display: block; width: 100%; text-align: left; background: none;
+  border: none; border-bottom: 1px solid var(--line);
+  padding: 12px 2px; cursor: pointer; font: inherit;
+}
+.conv-top { display: flex; justify-content: space-between; align-items: center; }
+.conv-name { font-size: 17px; }
+.conv-last {
+  display: block; color: var(--muted); font-size: 14px;
+  margin-top: 2px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+}
+.badge {
+  background: var(--oxblood); color: var(--ivory); font-size: 12px;
+  border-radius: 10px; padding: 2px 9px;
+}
+.msg { margin: 10px 0; max-width: 85%; }
+.msg p { margin: 0; }
+.msg .msg-body {
+  padding: 9px 12px; border-radius: 12px; line-height: 1.45;
+  white-space: pre-wrap; word-break: break-word;
+}
+.msg.in .msg-body { background: #efe8da; }
+.msg.out { margin-left: auto; }
+.msg.out .msg-body { background: var(--charcoal); color: var(--ivory); }
+.msg .msg-meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
+.draft {
+  border: 1px solid var(--oxblood); border-radius: 12px;
+  padding: 12px; margin: 14px 0;
+}
+.draft p { margin: 0 0 8px; }
+.draft-tag { color: var(--oxblood); font-size: 13px; }
+.draft-body { line-height: 1.45; white-space: pre-wrap; }
+.composer { margin-top: 18px; }
+.composer label { font-size: 14px; color: var(--muted); }
+.composer textarea {
+  width: 100%; font: inherit; padding: 10px; margin: 6px 0 10px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); color: var(--charcoal); resize: vertical;
+}
+.contact-row {
+  padding: 10px 2px; border-bottom: 1px solid var(--line);
+}
+.contact-row .conv-name { display: block; }
+.activity-row { margin: 0 0 8px !important; }

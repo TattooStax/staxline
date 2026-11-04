@@ -18,8 +18,27 @@
 
   <main>
     <section id="panel-messages" class="panel active">
-      <h2>Messages</h2>
-      <p class="empty">No conversations yet. SMS arrives here once the modem worker lands (milestone M1).</p>
+      <div id="convView">
+        <div class="row-head">
+          <h2>Messages</h2>
+          <button id="ingestBtn" class="btn small">Check for new</button>
+        </div>
+        <p id="ingestNote" class="note"></p>
+        <div id="convList"></div>
+        <p id="convEmpty" class="empty">No conversations yet. When a customer texts the shop line, their thread appears here.</p>
+      </div>
+      <div id="threadView" hidden>
+        <button id="backBtn" class="btn small">&larr; All messages</button>
+        <h2 id="threadTitle"></h2>
+        <div id="threadMsgs"></div>
+        <div id="draftList"></div>
+        <div class="composer">
+          <label for="draftBody">Reply</label>
+          <textarea id="draftBody" rows="3" placeholder="Write a reply — it is held for approval, never sent directly"></textarea>
+          <button id="holdBtn" class="btn">Hold draft</button>
+          <p id="composerNote" class="note"></p>
+        </div>
+      </div>
     </section>
     <section id="panel-phone" class="panel">
       <h2>Phone</h2>
@@ -27,7 +46,8 @@
     </section>
     <section id="panel-contacts" class="panel">
       <h2>Contacts</h2>
-      <p class="empty">No contacts yet. People are created from real messages and calls.</p>
+      <div id="contactList"></div>
+      <p id="contactEmpty" class="empty">No contacts yet. People are created from real messages and calls.</p>
     </section>
     <section id="panel-calendar" class="panel">
       <h2>Calendar</h2>
@@ -57,7 +77,8 @@
   <h2>Agent</h2><p>Conversation with the agent lives here.</p>
   <h2>Memory</h2><p>What the agent believes, with sources — review, correct, forget.</p>
   <h2>Behavior</h2><p>AI pickup, Shop Mode power profile, held-draft rules.</p>
-  <h2>Activity</h2><p>What the agent and the system did, in plain words.</p>
+  <h2>Activity</h2>
+  <div id="activityList"><p>What the agent and the system did, in plain words.</p></div>
   <h2>Models</h2><p>Active inference tier and capability probe results.</p>
 </aside>
 

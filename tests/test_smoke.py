@@ -1,16 +1,19 @@
 import json
+import tempfile
 import threading
 import unittest
 import urllib.request
-from http.server import ThreadingHTTPServer
+from pathlib import Path
 
-from staxline.server import Handler
+from staxline.server import build_server
 
 
 class SmokeTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.server = build_server(
+            "127.0.0.1", 0, Path(cls.tmp.name) / "smoke.db")
         cls.port = cls.server.server_address[1]
         threading.Thread(target=cls.server.serve_forever, daemon=True).start()
 
