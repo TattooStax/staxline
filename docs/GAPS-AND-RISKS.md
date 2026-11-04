@@ -69,13 +69,14 @@ draft — that absence was itself a finding).
     setup-wizard power check. A customer on a weak port would
     live the failure as "the box randomly dies during calls."
 
-5. **LFM Open License commercial terms — deadline: before M3.**
-   LFM weights are not Apache-licensed. Shipping them on a sold
-   product needs the commercial terms read and, if redistribution
-   at commercial scale is not clearly permitted, Liquid's answer
-   in writing — *before* hardware money moves, not pre-sale.
-   The fallback (models provisioned under whatever mechanism
-   the license allows) is acceptable only as a fallback.
+5. **LFM Open License commercial terms — ANSWERED
+   (2026-10-30).** The owner accepted the LFM Open License
+   v1.0 in writing on the InkStax track: free commercial use
+   up to $10M annual revenue, enterprise agreement above that.
+   LFM weights may ship on the product under those terms; the
+   pre-M3 action is reduced to recording the acceptance with
+   the product's legal notes and re-checking the ceiling if
+   the business ever approaches it.
 
 6. **USB power and random shop hardware.** A modem drawing peaks
    from a weak USB port on an old laptop browns out and resets

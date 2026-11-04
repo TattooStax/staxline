@@ -11,7 +11,8 @@ from pathlib import Path
 from staxline import db as dbmod
 from staxline.context_pack import build_pack, fargo_tattoo_shop
 from staxline.drafting import draft_all_pending
-from staxline.model import FakeModelClient, strip_think
+from staxline.model import (FakeModelClient, LlamaCppClient,
+                            strip_think)
 
 
 def seed(db):
@@ -41,6 +42,14 @@ class PackTests(unittest.TestCase):
             self.assertIn("(unconfirmed", pack)
             self.assertIn("How much for a small forearm", pack)
             self.assertIn("squareup.com/appointments", pack)
+
+
+class ModelPayloadTests(unittest.TestCase):
+    def test_reasoning_is_switched_off_in_every_payload(self):
+        p = LlamaCppClient._payload("sys", "user", 400, 0.3)
+        self.assertEqual(
+            p["chat_template_kwargs"], {"enable_thinking": False})
+        self.assertEqual(p["max_tokens"], 400)
 
 
 class DraftingTests(unittest.TestCase):

@@ -1,16 +1,15 @@
 """The model worker's client: a local llama.cpp server over
-HTTP, stdlib only (zero-dependency law). The bench lessons are
+HTTP, stdlib only (zero-dependency law). Two disciplines are
 baked into how it calls:
 
-- The first LFM3 bench (2026-10-30) burned its entire token
-  budget on reasoning and never produced a reply. Calls here
-  carry a hard, small token budget sized for a text-message
-  draft, and any think-block that still leaks into the output
-  is stripped before the text can become a draft — a draft is
-  customer-facing words, not a reasoning trace.
+- Calls carry a hard token budget sized for a text-message
+  draft, reasoning is asserted off in the payload (see
+  _payload), and any think-block that still leaks into the
+  output is stripped before the text can become a draft — a
+  draft is customer-facing words, not a reasoning trace.
 - Latency is measured on every call and returned with the
   text: per-turn latency on real hardware is the product's
-  risk #1 (director), and unmeasured numbers are how it stays
+  first risk, and unmeasured numbers are how it stays
   invisible.
 """
 import json
@@ -40,16 +39,29 @@ class LlamaCppClient:
         self.base = base_url.rstrip("/")
         self.timeout = timeout
 
-    def complete(self, system, user, max_tokens=220,
-                 temperature=0.3):
-        payload = {
+    @staticmethod
+    def _payload(system, user, max_tokens, temperature):
+        return {
             "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
             "temperature": temperature,
             "max_tokens": max_tokens,
+            # Reasoning off, by name: with reasoning on, the
+            # model can spend its whole token budget in the
+            # reasoning channel and return an empty reply, so
+            # a drafting call asserts it off and the reply gets
+            # the full budget. Templates that don't know the
+            # kwarg ignore it; the think-strip is the second
+            # wall.
+            "chat_template_kwargs": {"enable_thinking": False},
         }
+
+    def complete(self, system, user, max_tokens=400,
+                 temperature=0.3):
+        payload = self._payload(system, user, max_tokens,
+                                temperature)
         req = urllib.request.Request(
             self.base + "/v1/chat/completions",
             data=json.dumps(payload).encode(),
@@ -83,7 +95,7 @@ class FakeModelClient:
         self.replies = list(replies)
         self.seen = []
 
-    def complete(self, system, user, max_tokens=220,
+    def complete(self, system, user, max_tokens=400,
                  temperature=0.3):
         self.seen.append((system, user))
         if not self.replies:
