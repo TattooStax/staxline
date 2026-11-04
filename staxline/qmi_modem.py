@@ -322,6 +322,47 @@ class LinuxModem:
         return self.mm.read_sms(path)
 
 
+def run_m0b_call(modem, stream, db, greeting_wav, record_seconds,
+                 out_dir):
+    """One M0b speaking-path call (docs/PLAN.md, M0b plumbing
+    half): ring -> QMI answer -> stream the greeting (and then
+    silence-fill, so the transmit path never starves) while
+    capturing the caller -> hang up -> persist the call row.
+
+    The greeting is whatever WAV the caller passes — a labeled
+    test signal until the model's voice is wired in. What this
+    flow proves is transport: the answer connects, transmit
+    audio flows paced and unstarved, receive audio lands in a
+    real file, and the record is in the one database.
+    """
+    from . import db as dbmod
+    from .audio import write_wav
+    started = time.time()
+    path, number = modem.wait_for_call()
+    t0 = time.time()
+    modem.answer()
+    answered = time.time()
+    stream.queue_wav(greeting_wav)
+    stream.run(record_seconds)
+    modem.hangup(path)
+    rec_path = str(out_dir / f"call-{int(started)}.wav")
+    write_wav(rec_path, bytes(stream.captured))
+    call = {
+        "direction": "in", "number": number, "started_at": started,
+        "answered_at": answered, "ended_at": time.time(),
+        "answered_by": "m0b-stream", "rings_before_answer": None,
+        "time_to_audio_ms": int((answered - t0) * 1000),
+        "recording_path": rec_path, "transcript": None,
+        "outcome": "answered",
+    }
+    call["id"] = dbmod.record_call(db, call)
+    dbmod.log_activity(db, "m0b",
+                       f"M0b call from {number or 'unknown number'}: "
+                       f"answered via QMI, greeting streamed, "
+                       f"{len(stream.captured)} bytes captured.")
+    return call
+
+
 if __name__ == "__main__":
     import sys
     if "--probe" in sys.argv:
